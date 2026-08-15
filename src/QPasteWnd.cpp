@@ -406,6 +406,10 @@ int CQPasteWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
+	// The quick-paste window uses a compact popup surface instead of the
+	// legacy caption strip. Existing close/menu actions remain available.
+	SetCaptionOn(CAPTION_TOP, false, CGetSetOptions::m_Theme.GetCaptionSize(), CGetSetOptions::m_Theme.GetCaptionFontSize());
+
 	HICON b = (HICON)LoadImage(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 64, 64, LR_SHARED);
 	SetIcon(b, TRUE);
 
@@ -690,7 +694,7 @@ void CQPasteWnd::MoveControls()
 		m_stGroup.ShowWindow(SW_HIDE);
 	}
 
-	int searchRowStart = 33;
+	int searchRowStart = 36;
 
 	/*if(CGetSetOptions::m_bShowPersistent)
 	{
@@ -991,7 +995,7 @@ BOOL CQPasteWnd::ShowQPasteWindow(BOOL bFillList)
 	CGetSetOptions::m_Theme.Load(CGetSetOptions::GetTheme(), false, true);
 
 	SetCaptionColorActive(CGetSetOptions::m_bShowPersistent, theApp.GetConnectCV());
-	SetCaptionOn(CGetSetOptions::GetCaptionPos(), true, CGetSetOptions::m_Theme.GetCaptionSize(), CGetSetOptions::m_Theme.GetCaptionFontSize());
+	SetCaptionOn(CAPTION_TOP, false, CGetSetOptions::m_Theme.GetCaptionSize(), CGetSetOptions::m_Theme.GetCaptionFontSize());
 
 	UpdateStatus();
 
@@ -8116,7 +8120,7 @@ void CQPasteWnd::RefreshThemeColors()
 {
 	// Refresh caption bar colors
 	SetCaptionColorActive(CGetSetOptions::m_bShowPersistent, theApp.GetConnectCV());
-	SetCaptionOn(CGetSetOptions::GetCaptionPos(), true, CGetSetOptions::m_Theme.GetCaptionSize(), CGetSetOptions::m_Theme.GetCaptionFontSize());
+	SetCaptionOn(CAPTION_TOP, false, CGetSetOptions::m_Theme.GetCaptionSize(), CGetSetOptions::m_Theme.GetCaptionFontSize());
 	
 	// Refresh scrollbar colors
 	RefreshScrollBarColors();

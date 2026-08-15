@@ -24,7 +24,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define ROW_BOTTOM_BORDER		4
+#define ROW_BOTTOM_BORDER		10
 #define ROW_LEFT_BORDER			3
 #define COLOR_SHADOW			RGB(245, 245, 245)
 #define DUMMY_COL_WIDTH			2
@@ -478,7 +478,16 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			csText = csText.Mid(nSymEnd + 1);
 		}
 
-		// Draw the background of the list item.  Colors are selected
+		// Draw a quiet card on the popup surface. The list remains virtual and
+		// all existing item content and interaction are left unchanged.
+		CRect cardRect = rcItem;
+		cardRect.top += m_windowDpi->Scale(3);
+		cardRect.bottom -= m_windowDpi->Scale(3);
+
+		CBrush surfaceBrush(CGetSetOptions::m_Theme.MainWindowBG());
+		pDC->FillRect(rcItem, &surfaceBrush);
+
+		// Draw the background of the card. Colors are selected
 		// according to the item's state.
 		if (rItem.state & LVIS_SELECTED)
 		{
@@ -508,10 +517,17 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			}
 		}
 
-		pDC->FillSolidRect(rcItem, crBkgnd);
+		CBrush cardBrush(crBkgnd);
+		CPen cardPen(PS_SOLID, m_windowDpi->Scale(1),
+			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() : RGB(225, 230, 227));
+		CBrush* oldBrush = pDC->SelectObject(&cardBrush);
+		CPen* oldPen = pDC->SelectObject(&cardPen);
+		pDC->RoundRect(cardRect, CPoint(m_windowDpi->Scale(7), m_windowDpi->Scale(7)));
+		pDC->SelectObject(oldPen);
+		pDC->SelectObject(oldBrush);
 		nOldBKMode = pDC->SetBkMode(TRANSPARENT);
 
-		CRect rcText = rcItem;
+		CRect rcText = cardRect;
 		rcText.left += m_windowDpi->Scale(ROW_LEFT_BORDER);
 		rcText.top += m_windowDpi->Scale(1);
 		rcText.bottom -= m_windowDpi->Scale(1);
@@ -520,7 +536,7 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			strSymbols.GetLength() > 0 &&
 			strSymbols.Find(_T("<pasted>")) >= 0) //clip was pasted from ditto
 		{
-			CRect pastedRect(rcItem);
+			CRect pastedRect(cardRect);
 			pastedRect.left++;
 			pastedRect.right = pastedRect.left + m_windowDpi->Scale(2);
 
