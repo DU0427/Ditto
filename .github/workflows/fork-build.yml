@@ -1,0 +1,60 @@
+name: Fork Portable Build
+
+# Fork-only workflow: builds the pushed branch and uploads a ready-to-run
+# portable x64 package. No signing, no release publishing, no external secrets.
+
+on:
+  push:
+    branches:
+      - my-custom
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: CP_Main_10.sln
+
+jobs:
+  build-portable:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Build Release x64
+        run: msbuild ${{ env.SOLUTION_FILE_PATH }} /m /p:Configuration=Release /p:Platform=x64
+
+      - name: Prepare output folder
+        run: New-Item -ItemType Directory -Force -Path DittoSetup\Output | Out-Null
+
+      - name: Build portable ZIP
+        run: |
+          $zipName = "DittoPortable_mycustom_${{ github.run_number }}"
+          .\DittoSetup\BuildPortableZIP.bat $zipName bit64
+          if (-not (Test-Path "DittoSetup\Output\$zipName.zip")) {
+            throw "Portable ZIP was not produced"
+          }
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: DittoPortable
+          path: DittoSetup\Output\*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload raw binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ditto-x64-binaries
+          path: |
+            Release64\Ditto.exe
+            Release64\ICU_Loader.dll
+            Release64\Addins\DittoUtil.dll
+          if-no-files-found: error
+          retention-days: 14
