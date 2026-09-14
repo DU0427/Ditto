@@ -699,9 +699,11 @@ void CQPasteWnd::MoveControls()
 	int cx = crRect.Width();
 	int cy = crRect.Height();
 
-	// The search row sits directly under the caption, the list fills the rest.
+	// The search row sits directly under the caption, the list fills the rest
+	// and the group/system buttons live in a row at the bottom (the group tree
+	// opens down there).
 	int nSearchRowHeight = m_DittoWindow.m_dpi.Scale(36);
-	int nListBottomMargin = m_DittoWindow.m_dpi.Scale(4);
+	int nBottomRowHeight = m_DittoWindow.m_dpi.Scale(32);
 
 	int topOfListBox = nSearchRowHeight;
 
@@ -722,7 +724,7 @@ void CQPasteWnd::MoveControls()
 	}
 
 	int nWidth = cx;
-	int listBoxBottomOffset = nListBottomMargin;
+	int listBoxBottomOffset = nBottomRowHeight;
 
 	int extraSize = 0;
 
@@ -792,11 +794,13 @@ void CQPasteWnd::MoveControls()
 	}
 	int nSearchRowTop = m_DittoWindow.m_dpi.Scale(4);
 
-	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(34), nSearchRowTop, cx - m_DittoWindow.m_dpi.Scale(70), m_DittoWindow.m_dpi.Scale(25));
+	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(4), nSearchRowTop, cx - m_DittoWindow.m_dpi.Scale(8), m_DittoWindow.m_dpi.Scale(25));
 
-	m_systemMenu.MoveWindow(cx - m_DittoWindow.m_dpi.Scale(30), nSearchRowTop + m_DittoWindow.m_dpi.Scale(1), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
+	// Group and system menu buttons back at the bottom; the group tree opens
+	// below the list so the buttons belong there.
+	m_systemMenu.MoveWindow(cx - m_DittoWindow.m_dpi.Scale(30), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
 
-	m_ShowGroupsFolderBottom.MoveWindow(m_DittoWindow.m_dpi.Scale(4), nSearchRowTop + m_DittoWindow.m_dpi.Scale(1), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
+	m_ShowGroupsFolderBottom.MoveWindow(m_DittoWindow.m_dpi.Scale(4), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
 
 	/*if (CGetSetOptions::m_bShowPersistent &&
 		CGetSetOptions::m_bShowAlwaysOnTopWarning)

@@ -490,6 +490,9 @@ void CSymbolEdit::OnPaint()
 		dc.SelectObject(pOldBrush);
 	}
 
+	// Draw the text and prompt without a background box.
+	dc.SetBkMode(TRANSPARENT);
+
 	if (m_hSymbolIcon)
 	{
 		// Drawing the icon
