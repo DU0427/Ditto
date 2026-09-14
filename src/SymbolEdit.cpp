@@ -474,7 +474,7 @@ void CSymbolEdit::OnPaint()
 
 	// Rounded input field; the border turns accent colored while focused.
 	{
-		BOOL bFocused = (this == GetFocus() || GetTextLength() > 0);
+		BOOL bFocused = (this == GetFocus() || GetWindowTextLength() > 0);
 
 		CBrush fieldBrush(CGetSetOptions::m_Theme.SearchTextBoxFocusBG());
 		CPen fieldPen(PS_SOLID, m_windowDpi->Scale(1),
