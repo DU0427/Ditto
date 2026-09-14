@@ -1440,21 +1440,31 @@ void CQPasteWnd::UpdateStatus(bool bRepaintImmediately)
 
 	SetToolTipText(title);
 
-	CString windowTitle = _T(QPASTE_TITLE);
+	// Keep the caption clean like a native popup: no product title/logo.
+	// Only state hints are shown, and only when relevant.
+	CString windowTitle;
 
 	if (CGetSetOptions::m_bShowPersistent)
 	{
-		windowTitle += StrF(_T(" %s"), theApp.m_Language.GetString("top_window", "[Always on top]"));
+		windowTitle += StrF(_T("%s"), theApp.m_Language.GetString("top_window", "[Always on top]"));
 	}
 
 	if (theApp.IsClipboardViewerConnected() == FALSE)
 	{
-		windowTitle += StrF(_T(" %s"), theApp.m_Language.GetString("disconnected", "[Disconnected]"));
+		if (windowTitle.GetLength() > 0)
+		{
+			windowTitle += _T(" ");
+		}
+		windowTitle += theApp.m_Language.GetString("disconnected", "[Disconnected]");
 	}
 
 	if (m_bShowStarredClips)
 	{
-		windowTitle += StrF(_T(" %s"), theApp.m_Language.GetString("starred_clips", "[Starred clips]"));
+		if (windowTitle.GetLength() > 0)
+		{
+			windowTitle += _T(" ");
+		}
+		windowTitle += theApp.m_Language.GetString("starred_clips", "[Starred clips]");
 	}
 
 	SetCustomWindowTitle(windowTitle);

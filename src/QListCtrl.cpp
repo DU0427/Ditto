@@ -24,7 +24,7 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define ROW_BOTTOM_BORDER		10
+#define ROW_BOTTOM_BORDER		12
 #define ROW_LEFT_BORDER			3
 #define COLOR_SHADOW			RGB(245, 245, 245)
 #define DUMMY_COL_WIDTH			2
@@ -483,6 +483,22 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 		CRect cardRect = rcItem;
 		cardRect.top += m_windowDpi->Scale(3);
 		cardRect.bottom -= m_windowDpi->Scale(3);
+		cardRect.left += m_windowDpi->Scale(4);
+
+		// Keep the card inside the visible popup surface. The list control is
+		// wider than the window region on the right when the native scrollbar
+		// is hidden, so clamp the right edge to the parent's client width.
+		CWnd* pCardParent = GetParent();
+		if (pCardParent != NULL && ::IsWindow(pCardParent->GetSafeHwnd()))
+		{
+			CRect rcParentClient;
+			pCardParent->GetClientRect(rcParentClient);
+			int nRightLimit = rcParentClient.Width() - m_windowDpi->Scale(4);
+			if (nRightLimit > cardRect.left && cardRect.right > nRightLimit)
+			{
+				cardRect.right = nRightLimit;
+			}
+		}
 
 		CBrush surfaceBrush(CGetSetOptions::m_Theme.MainWindowBG());
 		pDC->FillRect(rcItem, &surfaceBrush);
@@ -522,13 +538,14 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() : RGB(225, 230, 227));
 		CBrush* oldBrush = pDC->SelectObject(&cardBrush);
 		CPen* oldPen = pDC->SelectObject(&cardPen);
-		pDC->RoundRect(cardRect, CPoint(m_windowDpi->Scale(7), m_windowDpi->Scale(7)));
+		pDC->RoundRect(cardRect, CPoint(m_windowDpi->Scale(6), m_windowDpi->Scale(6)));
 		pDC->SelectObject(oldPen);
 		pDC->SelectObject(oldBrush);
 		nOldBKMode = pDC->SetBkMode(TRANSPARENT);
 
 		CRect rcText = cardRect;
-		rcText.left += m_windowDpi->Scale(ROW_LEFT_BORDER);
+		rcText.left = cardRect.left + m_windowDpi->Scale(13);
+		rcText.right -= m_windowDpi->Scale(8);
 		rcText.top += m_windowDpi->Scale(1);
 		rcText.bottom -= m_windowDpi->Scale(1);
 
@@ -536,11 +553,18 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			strSymbols.GetLength() > 0 &&
 			strSymbols.Find(_T("<pasted>")) >= 0) //clip was pasted from ditto
 		{
-			CRect pastedRect(cardRect);
-			pastedRect.left++;
-			pastedRect.right = pastedRect.left + m_windowDpi->Scale(2);
+			CRect pastedRect(cardRect.left + m_windowDpi->Scale(3),
+				cardRect.top + m_windowDpi->Scale(4),
+				cardRect.left + m_windowDpi->Scale(6),
+				cardRect.bottom - m_windowDpi->Scale(4));
 
-			pDC->FillSolidRect(pastedRect, CGetSetOptions::m_Theme.ClipPastedColor());
+			CBrush pastedBrush(CGetSetOptions::m_Theme.ClipPastedColor());
+			CPen pastedPen(PS_SOLID, 1, CGetSetOptions::m_Theme.ClipPastedColor());
+			CBrush* pOldPastedBrush = pDC->SelectObject(&pastedBrush);
+			CPen* pOldPastedPen = pDC->SelectObject(&pastedPen);
+			pDC->RoundRect(pastedRect, CPoint(m_windowDpi->Scale(2), m_windowDpi->Scale(2)));
+			pDC->SelectObject(pOldPastedPen);
+			pDC->SelectObject(pOldPastedBrush);
 		}
 
 		// set firstTenNum to the first ten number (1-10) corresponding to
@@ -550,11 +574,7 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 
 		if (m_bShowTextForFirstTenHotKeys && firstTenNum >= 0)
 		{
-			rcText.left += m_windowDpi->Scale(12);
-		}
-		else
-		{
-			rcText.left += m_windowDpi->Scale(3);
+			rcText.left = cardRect.left + m_windowDpi->Scale(25);
 		}
 
 		bool drawInGroupIcon = true;
@@ -615,7 +635,7 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			}
 			else
 			{
-				pDC->DrawText(csText, rcText, DT_VCENTER | DT_EXPANDTABS | DT_NOPREFIX);
+				pDC->DrawText(csText, rcText, DT_VCENTER | DT_EXPANDTABS | DT_NOPREFIX | DT_END_ELLIPSIS);
 			}
 		}
 
@@ -631,35 +651,16 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			else
 				cs.Format(_T("%d"), firstTenNum);
 
-			CRect crClient;
-
-			GetWindowRect(crClient);
-			ScreenToClient(crClient);
-
-			CRect crHotKey = rcItem;
-
-			int extraFromClipWasPaste = 0;
-			if (m_showIfClipWasPasted)
-				extraFromClipWasPaste = 3;
-
-			crHotKey.right = crHotKey.left + m_windowDpi->Scale(11);
-			crHotKey.left += m_windowDpi->Scale(1 + extraFromClipWasPaste);
-			crHotKey.top += m_windowDpi->Scale(1 + extraFromClipWasPaste);
+			CRect crHotKey(cardRect.left + m_windowDpi->Scale(11), cardRect.top,
+				cardRect.left + m_windowDpi->Scale(22), cardRect.bottom);
 
 			HFONT hOldFont = (HFONT)pDC->SelectObject(m_SmallFont);
 			COLORREF localOldTextColor = pDC->SetTextColor(CGetSetOptions::m_Theme.ListSmallQuickPasteIndexColor());
 
-			CPen pen(PS_SOLID, 0, CGetSetOptions::m_Theme.ListSmallQuickPasteIndexColor());
-			CPen* pOldPen = pDC->SelectObject(&pen);
-
-			pDC->DrawText(cs, crHotKey, DT_BOTTOM);
-
-			pDC->MoveTo(CPoint(rcItem.left + m_windowDpi->Scale(8 + extraFromClipWasPaste), rcItem.top));
-			pDC->LineTo(CPoint(rcItem.left + m_windowDpi->Scale(8 + extraFromClipWasPaste), rcItem.bottom));
+			pDC->DrawText(cs, crHotKey, DT_VCENTER | DT_SINGLELINE | DT_LEFT | DT_NOPREFIX);
 
 			pDC->SelectObject(hOldFont);
 			pDC->SetTextColor(localOldTextColor);
-			pDC->SelectObject(pOldPen);
 		}
 
 		// restore the previous values

@@ -37,13 +37,13 @@ void CTheme::LoadDefaults()
 	m_CaptionLeftNotConnected = RGB(255, 255, 255);
 	m_CaptionRightNotConnected = RGB(255, 255, 0);
 
-	m_CaptionTextColor = RGB(191, 191, 191);
+	m_CaptionTextColor = RGB(122, 132, 127);
 	m_ListBoxOddRowsBG = RGB(255, 255, 255);
 	m_ListBoxEvenRowsBG = RGB(255, 255, 255);
 	m_ListBoxOddRowsText = RGB(31, 36, 35);
 	m_ListBoxEvenRowsText = RGB(31, 36, 35);
-	m_ListBoxSelectedBG = RGB(248, 255, 252);
-	m_ListBoxSelectedNoFocusBG = RGB(242, 248, 245);
+	m_ListBoxSelectedBG = RGB(228, 244, 238);
+	m_ListBoxSelectedNoFocusBG = RGB(238, 244, 241);
 	m_ListBoxSelectedText = RGB(31, 36, 35);
 	m_ListBoxSelectedNoFocusText = RGB(31, 36, 35);
 	m_clipPastedColor = RGB(20, 125, 107);
