@@ -535,7 +535,7 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 
 		CBrush cardBrush(crBkgnd);
 		CPen cardPen(PS_SOLID, m_windowDpi->Scale(1),
-			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() : RGB(225, 230, 227));
+			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() : RGB(231, 231, 231));
 		CBrush* oldBrush = pDC->SelectObject(&cardBrush);
 		CPen* oldPen = pDC->SelectObject(&cardPen);
 		pDC->RoundRect(cardRect, CPoint(m_windowDpi->Scale(6), m_windowDpi->Scale(6)));
@@ -572,9 +572,21 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 		// -1 means that nItem is not in the FirstTen block.
 		int firstTenNum = GetFirstTenNum(nItem);
 
+		CRect crBadge(0, 0, 0, 0);
+
 		if (m_bShowTextForFirstTenHotKeys && firstTenNum >= 0)
 		{
-			rcText.left = cardRect.left + m_windowDpi->Scale(25);
+			int badgeSize = cardRect.Height() - m_windowDpi->Scale(6);
+			if (badgeSize < m_windowDpi->Scale(14))
+			{
+				badgeSize = m_windowDpi->Scale(14);
+			}
+
+			int badgeTop = cardRect.top + (cardRect.Height() - badgeSize) / 2;
+			crBadge.SetRect(cardRect.left + m_windowDpi->Scale(8), badgeTop,
+				cardRect.left + m_windowDpi->Scale(8) + badgeSize, badgeTop + badgeSize);
+
+			rcText.left = crBadge.right + m_windowDpi->Scale(8);
 		}
 
 		bool drawInGroupIcon = true;
@@ -651,13 +663,25 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 			else
 				cs.Format(_T("%d"), firstTenNum);
 
-			CRect crHotKey(cardRect.left + m_windowDpi->Scale(11), cardRect.top,
-				cardRect.left + m_windowDpi->Scale(22), cardRect.bottom);
+			// Keycap-style badge so the quick paste hot key index is easy to read.
+			bool bHotKeySelected = (rItem.state & LVIS_SELECTED) != 0;
+			COLORREF crBadgeBG = bHotKeySelected ?
+				CGetSetOptions::m_Theme.ClipPastedColor() : RGB(235, 235, 235);
+			COLORREF crBadgeText = bHotKeySelected ?
+				RGB(255, 255, 255) : CGetSetOptions::m_Theme.ListSmallQuickPasteIndexColor();
+
+			CBrush badgeBrush(crBadgeBG);
+			CPen badgePen(PS_SOLID, 1, crBadgeBG);
+			CBrush* pOldBadgeBrush = pDC->SelectObject(&badgeBrush);
+			CPen* pOldBadgePen = pDC->SelectObject(&badgePen);
+			pDC->RoundRect(crBadge, CPoint(m_windowDpi->Scale(5), m_windowDpi->Scale(5)));
+			pDC->SelectObject(pOldBadgePen);
+			pDC->SelectObject(pOldBadgeBrush);
 
 			HFONT hOldFont = (HFONT)pDC->SelectObject(m_SmallFont);
-			COLORREF localOldTextColor = pDC->SetTextColor(CGetSetOptions::m_Theme.ListSmallQuickPasteIndexColor());
+			COLORREF localOldTextColor = pDC->SetTextColor(crBadgeText);
 
-			pDC->DrawText(cs, crHotKey, DT_VCENTER | DT_SINGLELINE | DT_LEFT | DT_NOPREFIX);
+			pDC->DrawText(cs, crBadge, DT_VCENTER | DT_SINGLELINE | DT_CENTER | DT_NOPREFIX);
 
 			pDC->SelectObject(hOldFont);
 			pDC->SetTextColor(localOldTextColor);
@@ -2311,11 +2335,18 @@ void CQListCtrl::CreateSmallFont()
 {
 	LOGFONT lf;
 
-	lf.lfHeight = -MulDiv(CGetSetOptions::GetFirstTenHotKeysFontSize(), m_windowDpi->GetDPI(), 72);
+	int fontSize = CGetSetOptions::GetFirstTenHotKeysFontSize();
+	if (fontSize < 9)
+	{
+		// Keep the index readable even if the stored option is very small.
+		fontSize = 9;
+	}
+
+	lf.lfHeight = -MulDiv(fontSize, m_windowDpi->GetDPI(), 72);
 	lf.lfWidth = 0;
 	lf.lfEscapement = 0;
 	lf.lfOrientation = 0;
-	lf.lfWeight = FW_LIGHT;
+	lf.lfWeight = FW_SEMIBOLD;
 	lf.lfItalic = FALSE;
 	lf.lfUnderline = FALSE;
 	lf.lfStrikeOut = FALSE;

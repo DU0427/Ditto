@@ -753,8 +753,9 @@ void CQPasteWnd::MoveControls()
 			{
 				m_modernScrollBar.UpdateScrollBar();
 				m_modernScrollBar.Show(false);
-				m_modernScrollBarHorz.UpdateScrollBar();
-				m_modernScrollBarHorz.Show(false);
+				// No horizontal scrollbar in the quick paste window: long clips are
+				// elided and horizontal scrolling stays available via the wheel.
+				m_modernScrollBarHorz.Hide(false);
 			}
 			else
 			{
@@ -6679,12 +6680,10 @@ LRESULT CQPasteWnd::OnUpdateScrollBar(WPARAM wParam, LPARAM lParam)
 		if (wParam == TRUE)
 		{
 			m_modernScrollBar.Show(false);
-			m_modernScrollBarHorz.Show(false);
 		}
 		else
 		{
 			m_modernScrollBar.UpdateScrollBar();
-			m_modernScrollBarHorz.UpdateScrollBar();
 		}
 	}
 	return 0;

@@ -82,7 +82,7 @@ long CGetSetOptions::m_tooltipTimeout;
 BOOL CGetSetOptions::m_cleanRTFBeforeDrawing = TRUE;
 int CGetSetOptions::m_doubleKeyStrokeTimeout = 350;
 int CGetSetOptions::m_firstTenHotKeysStart = 1;
-int CGetSetOptions::m_firstTenHotKeysFontSize = 5;
+int CGetSetOptions::m_firstTenHotKeysFontSize = 9;
 BOOL CGetSetOptions::m_moveSelectionOnOpenHotkey = TRUE;
 BOOL CGetSetOptions::m_allowBackToBackDuplicates = FALSE;
 BOOL CGetSetOptions::m_maintainSearchView = FALSE;
@@ -2948,7 +2948,7 @@ void CGetSetOptions::SetFirstTenHotKeysStart(int val)
 
 int CGetSetOptions::GetFirstTenHotKeysFontSize()
 {
-	return GetProfileLong("FirstTenHotKeysFontSize", 5);
+	return GetProfileLong("FirstTenHotKeysFontSize", 9);
 }
 
 void CGetSetOptions::SetFirstTenHotKeysFontSize(int val)

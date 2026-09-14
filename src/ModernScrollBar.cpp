@@ -116,10 +116,10 @@ void CModernScrollBar::UpdateScrollBar()
 	}
 
 	// The list control is clipped by a region to hide the native scrollbar.
-	// searchRowStart is 33 (the height reserved for search bar and options button).
-	int searchRowStart = 33;
+	// searchRowStart is 36 (the height reserved for search bar and options button).
+	int searchRowStart = 36;
 	if (m_pDPI)
-		searchRowStart = m_pDPI->Scale(33);
+		searchRowStart = m_pDPI->Scale(36);
 	
 	int visibleBottom = parentClientRect.bottom - searchRowStart;
 
