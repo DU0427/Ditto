@@ -53,7 +53,6 @@ void COptionsKeyBoard::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_STATIC_CUSTOM_KEYS, m_CustomeKeysHelp);
 	DDX_Control(pDX, IDC_CHECK_MOVE_CLIPS_ON_PASTE, m_btMoveClipOnGlobal10);
-	DDX_Control(pDX, IDC_CHECK_OVERRIDE_WINV, m_btOverrideWinV);
 	DDX_Control(pDX, IDC_HOTKEY_SAVE_CLIPBOARD, m_saveClipboardHotKey);
 	DDX_Control(pDX, IDC_HOTKEY_COPYSAVECLIPBOARD, m_copyAndSaveClipboardCtrl);
 }
@@ -101,6 +100,26 @@ BOOL COptionsKeyBoard::OnInitDialog()
 
 	m_btMoveClipOnGlobal10.SetCheck(CGetSetOptions::GetMoveClipsOnGlobal10());
 
+	// Created here instead of in the dialog template so it follows the
+	// translated layout (localized dialogs move the controls around).
+	CRect rcSaveClipboardRow;
+	GetDlgItem(IDC_STATIC_COLLECT_CLIPBOARD)->GetWindowRect(&rcSaveClipboardRow);
+	ScreenToClient(&rcSaveClipboardRow);
+
+	CRect rcLastTenGroup;
+	GetDlgItem(IDC_STATIC_GROUP)->GetWindowRect(&rcLastTenGroup);
+	ScreenToClient(&rcLastTenGroup);
+
+	int nGap = rcSaveClipboardRow.Height() / 4;
+
+	CRect rcOverrideWinV(rcSaveClipboardRow.left,
+		rcSaveClipboardRow.bottom + nGap,
+		rcLastTenGroup.right,
+		rcSaveClipboardRow.bottom + nGap + rcSaveClipboardRow.Height());
+
+	m_btOverrideWinV.Create(_T("Override Windows Win+V (open Ditto instead of the Windows clipboard history)"),
+		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX, rcOverrideWinV, this, IDC_CHECK_OVERRIDE_WINV);
+	m_btOverrideWinV.SetFont(GetFont());
 	m_btOverrideWinV.SetCheck(CGetSetOptions::GetOverrideWinVHotKey());
 
 	m_HotKey.SetFocus();

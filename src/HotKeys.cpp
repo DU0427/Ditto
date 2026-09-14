@@ -550,8 +550,27 @@ bool CHotKeys::FindFirstConflict(INT_PTR* pX, INT_PTR* pY)
 // (it never saw another key while the Windows key was held down).
 static HHOOK g_hWinVKeyboardHook = NULL;
 static HWND g_hWinVNotifyWnd = NULL;
-static bool g_bWinVConsumed = false;
 static bool g_bWinVTriggered = false;
+
+// Sends a harmless keystroke so the shell sees "another key" while the Windows
+// key is held. Without it the shell would open the start menu when the Windows
+// key is released (it never saw the swallowed V). Swallowing the Windows key up
+// instead would desynchronize the shells modifier state and break Win+D, Win+E
+// and friends, so a mask key is used (the same idea as AutoHotkey's mask key).
+static void SendWinVMaskKey()
+{
+	INPUT inputs[2];
+	memset(inputs, 0, sizeof(inputs));
+
+	inputs[0].type = INPUT_KEYBOARD;
+	inputs[0].ki.wVk = VK_CONTROL;
+
+	inputs[1].type = INPUT_KEYBOARD;
+	inputs[1].ki.wVk = VK_CONTROL;
+	inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	::SendInput(2, inputs, sizeof(INPUT));
+}
 
 static LRESULT CALLBACK WinVLowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -563,23 +582,17 @@ static LRESULT CALLBACK WinVLowLevelKeyboardProc(int nCode, WPARAM wParam, LPARA
 	}
 
 	KBDLLHOOKSTRUCT* pKey = (KBDLLHOOKSTRUCT*)lParam;
+
+	// Ignore the mask keystroke we inject ourselves.
+	if ((pKey->flags & LLKHF_INJECTED) != 0)
+	{
+		return ::CallNextHookEx(g_hWinVKeyboardHook, nCode, wParam, lParam);
+	}
+
 	BOOL bKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
 	BOOL bKeyUp = (wParam == WM_KEYUP || wParam == WM_SYSKEYUP);
-	BOOL bWinKey = (pKey->vkCode == VK_LWIN || pKey->vkCode == VK_RWIN);
 
-	if (bKeyUp && bWinKey)
-	{
-		bool bConsumed = g_bWinVConsumed;
-		g_bWinVConsumed = false;
-		g_bWinVTriggered = false;
-
-		if (bConsumed)
-		{
-			// Swallow the Windows key release so the start menu stays closed.
-			return 1;
-		}
-	}
-	else if (pKey->vkCode == 'V' &&
+	if (pKey->vkCode == 'V' &&
 		((::GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 ||
 			(::GetAsyncKeyState(VK_RWIN) & 0x8000) != 0))
 	{
@@ -593,8 +606,6 @@ static LRESULT CALLBACK WinVLowLevelKeyboardProc(int nCode, WPARAM wParam, LPARA
 
 			if (!bOtherModifier)
 			{
-				g_bWinVConsumed = true;
-
 				if (!g_bWinVTriggered)
 				{
 					g_bWinVTriggered = true;
@@ -606,11 +617,15 @@ static LRESULT CALLBACK WinVLowLevelKeyboardProc(int nCode, WPARAM wParam, LPARA
 						::PostMessage(g_hWinVNotifyWnd, WM_HOTKEY, theApp.m_pDittoHotKey->m_Atom, 0);
 					}
 				}
+
+				SendWinVMaskKey();
 			}
 		}
-		else if (bKeyUp)
+		else if (bKeyUp && g_bWinVTriggered)
 		{
+			// Swallow the matching key up as well.
 			g_bWinVTriggered = false;
+			return 1;
 		}
 
 		// Swallow Win+V so the Windows clipboard flyout does not open.
@@ -641,6 +656,5 @@ void CHotKeys::RemoveWinVHotKeyOverride()
 	}
 
 	g_hWinVNotifyWnd = NULL;
-	g_bWinVConsumed = false;
 	g_bWinVTriggered = false;
 }

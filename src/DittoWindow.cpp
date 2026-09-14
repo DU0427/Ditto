@@ -61,6 +61,8 @@ void CDittoWindow::DoCreate(CWnd *pWnd)
 	m_closeButton.LoadStdImageDPI(m_dpi.GetDPI(), Close_Black_16_16, Close_Black_20_20, Close_Black_24_24, Close_Black_28, Close_Black_32_32, _T("PNG"), close_36, close_40, close_44, close_48, close_52, close_56);
 	m_chevronRightButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronRight_Black_16_16, ChevronRight_Black_20_20, ChevronRight_Black_24_24, ChevronRight_Black_28, ChevronRight_Black_32_32, _T("PNG"), ChevronRight_Black_36, ChevronRight_Black_40, ChevronRight_Black_44, ChevronRight_Black_48, ChevronRight_Black_52, ChevronRight_Black_56);
 	m_chevronLeftButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronLeft_Black_16_16, ChevronLeft_Black_20_20, ChevronLeft_Black_24_24, ChevronLeft_Black_28, ChevronLeft_Black_32_32, _T("PNG"), ChevronLeft_Black_36, ChevronLeft_Black_40, ChevronLeft_Black_44, ChevronLeft_Black_48, ChevronLeft_Black_52, ChevronLeft_Black_56);
+	m_chevronUpButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronUp_Black_16_16, ChevronUp_Black_20_20, ChevronUp_Black_24_24, ChevronUp_Black_28, ChevronUp_Black_32_32, _T("PNG"), ChevronUp_Black_36, ChevronUp_Black_40, ChevronUp_Black_44, ChevronUp_Black_48, ChevronUp_Black_52, ChevronUp_Black_56);
+	m_chevronDownButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronDown_Black_16_16, ChevronDown_Black_20_20, ChevronDown_Black_24_24, ChevronDown_Black_28, ChevronDown_Black_32_32, _T("PNG"), ChevronDown_Black_36, ChevronDown_Black_40, ChevronDown_Black_44, ChevronDown_Black_48, ChevronDown_Black_52, ChevronDown_Black_56);
 	m_maximizeButton.LoadStdImageDPI(m_dpi.GetDPI(), IDB_MAXIMIZE_16_16, maximize_20, maximize_24, maximize_28, maximize_32, _T("PNG"), maximize_36, maximize_40, maximize_44, maximize_48, maximize_52, maximize_56);
 	m_minimizeButton.LoadStdImageDPI(m_dpi.GetDPI(), minimize_16, minimize_20, minimize_24, minimize_28, minimize_32, _T("PNG"), minimize_36, minimize_40, minimize_44, minimize_48, minimize_52, minimize_56);
 	//m_windowIcon.LoadStdImageDPI(NewWindowIcon_24_14, NewWindowIcon_30, NewWindowIcon_36, NewWindowIcon_48, _T("PNG"));
@@ -467,8 +469,8 @@ void CDittoWindow::DrawChevronBtn(CWindowDC &dc, CWnd *pWnd)
 		return;
 	}
 
-	// A caption on the top/bottom collapses the window up/down, so draw an
-	// up/down chevron there instead of the left/right one.
+	// A caption on the top/bottom collapses the window up/down, so use the
+	// up/down chevron images there (same artwork as the left/right ones).
 	if (m_captionPosition == CAPTION_TOP || m_captionPosition == CAPTION_BOTTOM)
 	{
 		bool bPointsUp = (m_bMinimized == false);
@@ -477,39 +479,13 @@ void CDittoWindow::DrawChevronBtn(CWindowDC &dc, CWnd *pWnd)
 			bPointsUp = (m_bMinimized == true);
 		}
 
-		// Matches the chevron images (RGB 100) including their hover brightening.
-		int nShade = m_bMouseOverChevron ? 118 : 100;
-
-		Gdiplus::Graphics graphics(dc.m_hDC);
-		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-
-		Gdiplus::Pen pen(Gdiplus::Color(255, nShade, nShade, nShade), (Gdiplus::REAL)m_dpi.Scale(2));
-		pen.SetStartCap(Gdiplus::LineCapRound);
-		pen.SetEndCap(Gdiplus::LineCapRound);
-		pen.SetLineJoin(Gdiplus::LineJoinRound);
-
-		CPoint ptCenter = m_crChevronBT.CenterPoint();
-		if (m_bMouseDownOnChevron)
-		{
-			// Pressed state nudges the glyph like the image based buttons do.
-			ptCenter.x -= 1;
-			ptCenter.y -= 1;
-		}
-
-		Gdiplus::REAL x = (Gdiplus::REAL)ptCenter.x;
-		Gdiplus::REAL y = (Gdiplus::REAL)ptCenter.y;
-		Gdiplus::REAL nHalfWidth = (Gdiplus::REAL)m_dpi.Scale(5);
-		Gdiplus::REAL nHalfHeight = (Gdiplus::REAL)m_dpi.Scale(4);
-
 		if (bPointsUp)
 		{
-			graphics.DrawLine(&pen, x - nHalfWidth, y + nHalfHeight, x, y - nHalfHeight);
-			graphics.DrawLine(&pen, x, y - nHalfHeight, x + nHalfWidth, y + nHalfHeight);
+			m_chevronUpButton.Draw(&dc, m_dpi, pWnd, m_crChevronBT, m_bMouseOverChevron, m_bMouseDownOnChevron);
 		}
 		else
 		{
-			graphics.DrawLine(&pen, x - nHalfWidth, y - nHalfHeight, x, y + nHalfHeight);
-			graphics.DrawLine(&pen, x, y + nHalfHeight, x + nHalfWidth, y - nHalfHeight);
+			m_chevronDownButton.Draw(&dc, m_dpi, pWnd, m_crChevronBT, m_bMouseOverChevron, m_bMouseDownOnChevron);
 		}
 
 		return;
@@ -954,6 +930,8 @@ void CDittoWindow::OnDpiChanged(CWnd *pParent, int dpi)
 	
 	m_chevronLeftButton.Reset();
 	m_chevronLeftButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronLeft_Black_16_16, ChevronLeft_Black_20_20, ChevronLeft_Black_24_24, ChevronLeft_Black_28, ChevronLeft_Black_32_32, _T("PNG"), ChevronLeft_Black_36, ChevronLeft_Black_40, ChevronLeft_Black_44, ChevronLeft_Black_48, ChevronLeft_Black_52, ChevronLeft_Black_56);
+	m_chevronUpButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronUp_Black_16_16, ChevronUp_Black_20_20, ChevronUp_Black_24_24, ChevronUp_Black_28, ChevronUp_Black_32_32, _T("PNG"), ChevronUp_Black_36, ChevronUp_Black_40, ChevronUp_Black_44, ChevronUp_Black_48, ChevronUp_Black_52, ChevronUp_Black_56);
+	m_chevronDownButton.LoadStdImageDPI(m_dpi.GetDPI(), ChevronDown_Black_16_16, ChevronDown_Black_20_20, ChevronDown_Black_24_24, ChevronDown_Black_28, ChevronDown_Black_32_32, _T("PNG"), ChevronDown_Black_36, ChevronDown_Black_40, ChevronDown_Black_44, ChevronDown_Black_48, ChevronDown_Black_52, ChevronDown_Black_56);
 
 	m_maximizeButton.Reset();
 	m_maximizeButton.LoadStdImageDPI(m_dpi.GetDPI(), IDB_MAXIMIZE_16_16, maximize_20, maximize_24, maximize_28, maximize_32, _T("PNG"), maximize_36, maximize_40, maximize_44, maximize_48, maximize_52, maximize_56);

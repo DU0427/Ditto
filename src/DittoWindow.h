@@ -71,6 +71,8 @@ public:
 	CGdiImageDrawer m_closeButton;
 	CGdiImageDrawer m_chevronRightButton;
 	CGdiImageDrawer m_chevronLeftButton;
+	CGdiImageDrawer m_chevronUpButton;
+	CGdiImageDrawer m_chevronDownButton;
 	CGdiImageDrawer m_maximizeButton;
 	CGdiImageDrawer m_minimizeButton;
 	//CGdiImageDrawer m_windowIcon;
