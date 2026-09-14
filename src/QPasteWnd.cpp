@@ -628,25 +628,6 @@ void CQPasteWnd::LoadShortcuts()
 
 void CQPasteWnd::SetSearchImages()
 {
-	// Magnifier icon inside the search field (DPI appropriate).
-	int nDpi = m_DittoWindow.m_dpi.GetDPI();
-
-	if (nDpi >= 168)
-	{
-		m_search.SetSymbolIcon(Search_32);
-	}
-	else if (nDpi >= 144)
-	{
-		m_search.SetSymbolIcon(Search_28);
-	}
-	else if (nDpi >= 120)
-	{
-		m_search.SetSymbolIcon(Search_24);
-	}
-	else
-	{
-		m_search.SetSymbolIcon(Search_16);
-	}
 }
 
 	//if (m_DittoWindow.m_dpi.GetDPI() > 144) 
@@ -699,23 +680,18 @@ void CQPasteWnd::MoveControls()
 	int cx = crRect.Width();
 	int cy = crRect.Height();
 
-	// The search row sits directly under the caption, the list fills the rest
-	// and the group/system buttons live in a row at the bottom (the group tree
-	// opens down there).
-	int nSearchRowHeight = m_DittoWindow.m_dpi.Scale(36);
-	int nBottomRowHeight = m_DittoWindow.m_dpi.Scale(32);
-
-	int topOfListBox = nSearchRowHeight;
+	//Hide the two pixels of space at the top, not sure where this is coming from
+	int topOfListBox = 0;
 
 	if (theApp.m_GroupID > 0 && m_bShowStarredClips == false)
 	{
 		m_stGroup.ShowWindow(SW_SHOW);
 		m_BackButton.ShowWindow(SW_SHOW);
 
-		m_BackButton.MoveWindow(m_DittoWindow.m_dpi.Scale(2), topOfListBox + m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(16), m_DittoWindow.m_dpi.Scale(16));
-		m_stGroup.MoveWindow(m_DittoWindow.m_dpi.Scale(24), topOfListBox + m_DittoWindow.m_dpi.Scale(2), cx - m_DittoWindow.m_dpi.Scale(20), m_DittoWindow.m_dpi.Scale(16));
+		m_BackButton.MoveWindow(m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(16), m_DittoWindow.m_dpi.Scale(16));
+		m_stGroup.MoveWindow(m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(2), cx - m_DittoWindow.m_dpi.Scale(20), m_DittoWindow.m_dpi.Scale(16));
 
-		topOfListBox += m_DittoWindow.m_dpi.Scale(20);
+		topOfListBox = m_DittoWindow.m_dpi.Scale(20);
 	}
 	else
 	{
@@ -723,8 +699,9 @@ void CQPasteWnd::MoveControls()
 		m_stGroup.ShowWindow(SW_HIDE);
 	}
 
+	int searchRowStart = 36;
 	int nWidth = cx;
-	int listBoxBottomOffset = nBottomRowHeight;
+	int listBoxBottomOffset = m_DittoWindow.m_dpi.Scale(searchRowStart);
 
 	int extraSize = 0;
 
@@ -792,12 +769,8 @@ void CQPasteWnd::MoveControls()
 			m_modernScrollBarHorz.Hide(false);
 		}
 	}
-	int nSearchRowTop = m_DittoWindow.m_dpi.Scale(4);
+	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(34), cy - m_DittoWindow.m_dpi.Scale(searchRowStart - 5), cx - m_DittoWindow.m_dpi.Scale(70), m_DittoWindow.m_dpi.Scale(25));
 
-	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(4), nSearchRowTop, cx - m_DittoWindow.m_dpi.Scale(8), m_DittoWindow.m_dpi.Scale(25));
-
-	// Group and system menu buttons back at the bottom; the group tree opens
-	// below the list so the buttons belong there.
 	m_systemMenu.MoveWindow(cx - m_DittoWindow.m_dpi.Scale(30), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
 
 	m_ShowGroupsFolderBottom.MoveWindow(m_DittoWindow.m_dpi.Scale(4), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
