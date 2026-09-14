@@ -116,11 +116,11 @@ void CModernScrollBar::UpdateScrollBar()
 	}
 
 	// The list control is clipped by a region to hide the native scrollbar.
-	// The search row now sits at the top, so only the small bottom margin is
-	// below the list.
-	int searchRowStart = 4;
+	// The search row sits at the bottom of the window (36px, see
+	// CQPasteWnd::MoveControls), so the bar has to stop above it.
+	int searchRowStart = 36;
 	if (m_pDPI)
-		searchRowStart = m_pDPI->Scale(4);
+		searchRowStart = m_pDPI->Scale(36);
 	
 	int visibleBottom = parentClientRect.bottom - searchRowStart;
 
