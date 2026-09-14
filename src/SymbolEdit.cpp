@@ -469,8 +469,26 @@ void CSymbolEdit::OnPaint()
 	textRect.left += LOWORD(margins);
 	textRect.right -= HIWORD(margins);
 
-	// Clearing the background
-	dc.FillSolidRect(rect, GetSysColor(COLOR_WINDOW));	
+	// Popup surface behind the field so the rounded corners blend in.
+	dc.FillSolidRect(rect, CGetSetOptions::m_Theme.MainWindowBG());
+
+	// Rounded input field; the border turns accent colored while focused.
+	{
+		BOOL bFocused = (this == GetFocus() || GetTextLength() > 0);
+
+		CBrush fieldBrush(CGetSetOptions::m_Theme.SearchTextBoxFocusBG());
+		CPen fieldPen(PS_SOLID, m_windowDpi->Scale(1),
+			bFocused ? CGetSetOptions::m_Theme.SearchTextBoxFocusBorder() : RGB(216, 220, 218));
+
+		CBrush* pOldBrush = dc.SelectObject(&fieldBrush);
+		CPen* pOldPen = dc.SelectObject(&fieldPen);
+
+		int nRadius = m_windowDpi->Scale(8);
+		dc.RoundRect(rect, CPoint(nRadius, nRadius));
+
+		dc.SelectObject(pOldPen);
+		dc.SelectObject(pOldBrush);
+	}
 
 	if (m_hSymbolIcon)
 	{
@@ -507,14 +525,6 @@ void CSymbolEdit::OnPaint()
 
 	if(this == GetFocus() || text.GetLength() > 0)
 	{
-		dc.FillSolidRect(rect, CGetSetOptions::m_Theme.SearchTextBoxFocusBG());
-
-		//CBrush borderBrush(CGetSetOptions::m_Theme.SearchTextBoxFocusBorder());
-		//dc.FrameRect(rect, &borderBrush);
-
-		//rect.DeflateRect(1, 1, 1, 1);
-		//textRect.DeflateRect(0, 1, 1, 1);
-
 		oldFont = dc.SelectObject(GetFont());		
 
 		COLORREF oldColor = dc.GetTextColor();
@@ -527,7 +537,6 @@ void CSymbolEdit::OnPaint()
 	}
 	else
 	{
-		dc.FillSolidRect(rect, CGetSetOptions::m_Theme.MainWindowBG());
 	}
 
 
@@ -944,19 +953,15 @@ void CSymbolEdit::OnNcPaint()
 
 	CRect b(0, r.Height() - m_centerTextDiff- m_windowDpi->Scale(1), r.Width(), r.Height());
 
-	COLORREF c = CGetSetOptions::m_Theme.MainWindowBG();
+	// The rounded field (background + border) is painted in OnPaint, so leave
+	// the non client area alone and let the popup surface show at the corners.
+	return;
 
-	if (this == GetFocus() || text.GetLength() > 0)
-	{		
-		dc.FillSolidRect(t, CGetSetOptions::m_Theme.SearchTextBoxFocusBG());
-		dc.FillSolidRect(b, CGetSetOptions::m_Theme.SearchTextBoxFocusBG());
+	COLORREF c = CGetSetOptions::m_Theme.SearchTextBoxFocusBorder();
 
-		c = CGetSetOptions::m_Theme.SearchTextBoxFocusBorder();
-	}
-	else
+	if (this != GetFocus() && text.GetLength() == 0)
 	{
-		dc.FillSolidRect(t, CGetSetOptions::m_Theme.MainWindowBG());
-		dc.FillSolidRect(b, CGetSetOptions::m_Theme.MainWindowBG());
+		c = RGB(216, 220, 218);
 	}	
 
 	//if ((text.GetLength() > 0 || this == GetFocus()) && m_windowDpi)

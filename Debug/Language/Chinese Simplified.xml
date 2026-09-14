@@ -542,6 +542,12 @@
 	
 	<Ditto_Options_Quick_Paste_Keyboard>
 		<Item English_Text = "Quick Paste Keyboard" ID = "-1" PropertyPage = "true">快速粘贴按键</Item>
+		<Item English_Text = "Override Windows Win+V HotKey" ID = "-1">覆盖 Windows 的 Win+V 快捷键（用 Ditto 打开，替代系统剪贴板历史）</Item>
+		<Item English_Text = "Database ID" ID = "-1">数据库 ID</Item>
+		<Item English_Text = "Added" ID = "-1">添加时间</Item>
+		<Item English_Text = "Last Used" ID = "-1">最后使用</Item>
+		<Item English_Text = "Never Auto Delete" ID = "-1">永不自动删除</Item>
+		<Item English_Text = "Quick Paste" ID = "-1">快速粘贴</Item>
 		
 		<Item English_Text = "Reset" ID = "2144">重置</Item>
 		<Item English_Text = "Shortcuts for selected command:" ID = "2148">所选命令的快捷键:</Item>

@@ -536,6 +536,21 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 		rcText.top += m_windowDpi->Scale(1);
 		rcText.bottom -= m_windowDpi->Scale(1);
 
+		// Only ever draw whole text lines - a half clipped line looks broken,
+		// so drop it instead (the second line of a two line clip for example).
+		int nLines = m_linesPerRow > 0 ? m_linesPerRow : 1;
+		int nLineHeight = (m_rowHeight - m_windowDpi->Scale(ROW_BOTTOM_BORDER)) / nLines;
+
+		if (nLineHeight > 0)
+		{
+			int nWholeLinesHeight = (rcText.Height() / nLineHeight) * nLineHeight;
+
+			if (nWholeLinesHeight > 0)
+			{
+				rcText.bottom = rcText.top + nWholeLinesHeight;
+			}
+		}
+
 		if (m_showIfClipWasPasted &&
 			strSymbols.GetLength() > 0 &&
 			strSymbols.Find(_T("<pasted>")) >= 0) //clip was pasted from ditto

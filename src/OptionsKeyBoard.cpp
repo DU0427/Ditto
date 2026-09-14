@@ -117,7 +117,7 @@ BOOL COptionsKeyBoard::OnInitDialog()
 		rcLastTenGroup.right,
 		rcSaveClipboardRow.bottom + nGap + rcSaveClipboardRow.Height());
 
-	m_btOverrideWinV.Create(_T("Override Windows Win+V (open Ditto instead of the Windows clipboard history)"),
+	m_btOverrideWinV.Create(theApp.m_Language.GetString(_T("Override Windows Win+V HotKey"), _T("Override Windows Win+V (open Ditto instead of the Windows clipboard history)")),
 		WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX, rcOverrideWinV, this, IDC_CHECK_OVERRIDE_WINV);
 	m_btOverrideWinV.SetFont(GetFont());
 	m_btOverrideWinV.SetCheck(CGetSetOptions::GetOverrideWinVHotKey());

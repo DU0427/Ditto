@@ -628,7 +628,26 @@ void CQPasteWnd::LoadShortcuts()
 
 void CQPasteWnd::SetSearchImages()
 {
-	//int iSourceImageDPIToUse = 96; // We will assume 96 by default.
+	// Magnifier icon inside the search field (DPI appropriate).
+	int nDpi = m_DittoWindow.m_dpi.GetDPI();
+
+	if (nDpi >= 168)
+	{
+		m_search.SetSymbolIcon(Search_32);
+	}
+	else if (nDpi >= 144)
+	{
+		m_search.SetSymbolIcon(Search_28);
+	}
+	else if (nDpi >= 120)
+	{
+		m_search.SetSymbolIcon(Search_24);
+	}
+	else
+	{
+		m_search.SetSymbolIcon(Search_16);
+	}
+}
 
 	//if (m_DittoWindow.m_dpi.GetDPI() > 144) 
 	//	iSourceImageDPIToUse = 192;
@@ -653,7 +672,9 @@ void CQPasteWnd::SetSearchImages()
 	//	m_search.SetBitmaps(IDB_BITMAP_SEARCH_NORMAL, IDB_BITMAP_SEARCH_CLOSE);
 	//	break;
 	//}
+#if 0
 }
+#endif
 
 void CQPasteWnd::OnSize(UINT nType, int cx, int cy)
 {
@@ -678,18 +699,21 @@ void CQPasteWnd::MoveControls()
 	int cx = crRect.Width();
 	int cy = crRect.Height();
 
-	//Hide the two pixels of space at the top, not sure where this is coming from
-	int topOfListBox = 0;
+	// The search row sits directly under the caption, the list fills the rest.
+	int nSearchRowHeight = m_DittoWindow.m_dpi.Scale(36);
+	int nListBottomMargin = m_DittoWindow.m_dpi.Scale(4);
+
+	int topOfListBox = nSearchRowHeight;
 
 	if (theApp.m_GroupID > 0 && m_bShowStarredClips == false)
 	{
 		m_stGroup.ShowWindow(SW_SHOW);
 		m_BackButton.ShowWindow(SW_SHOW);
 
-		m_BackButton.MoveWindow(m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(16), m_DittoWindow.m_dpi.Scale(16));
-		m_stGroup.MoveWindow(m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(2), cx - m_DittoWindow.m_dpi.Scale(20), m_DittoWindow.m_dpi.Scale(16));
+		m_BackButton.MoveWindow(m_DittoWindow.m_dpi.Scale(2), topOfListBox + m_DittoWindow.m_dpi.Scale(2), m_DittoWindow.m_dpi.Scale(16), m_DittoWindow.m_dpi.Scale(16));
+		m_stGroup.MoveWindow(m_DittoWindow.m_dpi.Scale(24), topOfListBox + m_DittoWindow.m_dpi.Scale(2), cx - m_DittoWindow.m_dpi.Scale(20), m_DittoWindow.m_dpi.Scale(16));
 
-		topOfListBox = m_DittoWindow.m_dpi.Scale(20);
+		topOfListBox += m_DittoWindow.m_dpi.Scale(20);
 	}
 	else
 	{
@@ -697,15 +721,8 @@ void CQPasteWnd::MoveControls()
 		m_stGroup.ShowWindow(SW_HIDE);
 	}
 
-	int searchRowStart = 36;
-
-	/*if(CGetSetOptions::m_bShowPersistent)
-	{
-		searchRowStart = 41;
-	}*/
-
 	int nWidth = cx;
-	int listBoxBottomOffset = m_DittoWindow.m_dpi.Scale(searchRowStart);
+	int listBoxBottomOffset = nListBottomMargin;
 
 	int extraSize = 0;
 
@@ -773,11 +790,13 @@ void CQPasteWnd::MoveControls()
 			m_modernScrollBarHorz.Hide(false);
 		}
 	}
-	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(34), cy - m_DittoWindow.m_dpi.Scale(searchRowStart - 5), cx - m_DittoWindow.m_dpi.Scale(70), m_DittoWindow.m_dpi.Scale(25));
+	int nSearchRowTop = m_DittoWindow.m_dpi.Scale(4);
 
-	m_systemMenu.MoveWindow(cx - m_DittoWindow.m_dpi.Scale(30), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
+	m_search.MoveWindow(m_DittoWindow.m_dpi.Scale(34), nSearchRowTop, cx - m_DittoWindow.m_dpi.Scale(70), m_DittoWindow.m_dpi.Scale(25));
 
-	m_ShowGroupsFolderBottom.MoveWindow(m_DittoWindow.m_dpi.Scale(4), cy - m_DittoWindow.m_dpi.Scale(28), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
+	m_systemMenu.MoveWindow(cx - m_DittoWindow.m_dpi.Scale(30), nSearchRowTop + m_DittoWindow.m_dpi.Scale(1), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
+
+	m_ShowGroupsFolderBottom.MoveWindow(m_DittoWindow.m_dpi.Scale(4), nSearchRowTop + m_DittoWindow.m_dpi.Scale(1), m_DittoWindow.m_dpi.Scale(24), m_DittoWindow.m_dpi.Scale(24));
 
 	/*if (CGetSetOptions::m_bShowPersistent &&
 		CGetSetOptions::m_bShowAlwaysOnTopWarning)
@@ -5981,24 +6000,24 @@ void CQPasteWnd::OnGetToolTipText(NMHDR* pNMHDR, LRESULT* pResult)
 				q.getFloatField(_T("stickyClipOrder")), q.getFloatField(_T("stickyClipGroupOrder")));
 #endif 
 
-			clipData += StrF(_T("\r\nDatabase ID: %d"), q.getIntField(_T("lID")));
+			clipData += StrF(_T("\r\n%s: %d"), theApp.m_Language.GetString(_T("Database ID"), _T("Database ID")), q.getIntField(_T("lID")));
 
 			COleDateTime time((time_t)q.getInt64Field(_T("lDate")));
-			clipData += "\r\nAdded: " + time.Format();
+			clipData += StrF(_T("\r\n%s: %s"), theApp.m_Language.GetString(_T("Added"), _T("Added")), (LPCTSTR)time.Format());
 
 			COleDateTime modified((time_t)q.getInt64Field(_T("lastPasteDate")));
-			clipData += "\r\nLast Used: " + modified.Format();
+			clipData += StrF(_T("\r\n%s: %s"), theApp.m_Language.GetString(_T("Last Used"), _T("Last Used")), (LPCTSTR)modified.Format());
 
 			if (q.getIntField(_T("lDontAutoDelete")) > 0)
 			{
-				clipData += "\r\nNever Auto Delete";
+				clipData += StrF(_T("\r\n%s"), theApp.m_Language.GetString(_T("Never Auto Delete"), _T("Never Auto Delete")));
 			}
 
 			CString csQuickPaste = q.getStringField(_T("QuickPasteText"));
 
 			if (csQuickPaste.IsEmpty() == FALSE)
 			{
-				clipData += "\nQuick Paste = ";
+				clipData += StrF(_T("\n%s = "), theApp.m_Language.GetString(_T("Quick Paste"), _T("Quick Paste")));
 				clipData += csQuickPaste;
 			}
 
