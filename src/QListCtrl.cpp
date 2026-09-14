@@ -485,21 +485,6 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 		cardRect.bottom -= m_windowDpi->Scale(3);
 		cardRect.left += m_windowDpi->Scale(4);
 
-		// Keep the card inside the visible popup surface. The list control is
-		// wider than the window region on the right when the native scrollbar
-		// is hidden, so clamp the right edge to the parent's client width.
-		CWnd* pCardParent = GetParent();
-		if (pCardParent != NULL && ::IsWindow(pCardParent->GetSafeHwnd()))
-		{
-			CRect rcParentClient;
-			pCardParent->GetClientRect(rcParentClient);
-			int nRightLimit = rcParentClient.Width() - m_windowDpi->Scale(4);
-			if (nRightLimit > cardRect.left && cardRect.right > nRightLimit)
-			{
-				cardRect.right = nRightLimit;
-			}
-		}
-
 		CBrush surfaceBrush(CGetSetOptions::m_Theme.MainWindowBG());
 		pDC->FillRect(rcItem, &surfaceBrush);
 
@@ -576,10 +561,10 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 
 		if (m_bShowTextForFirstTenHotKeys && firstTenNum >= 0)
 		{
-			int badgeSize = cardRect.Height() - m_windowDpi->Scale(6);
-			if (badgeSize < m_windowDpi->Scale(14))
+			int badgeSize = cardRect.Height() - m_windowDpi->Scale(14);
+			if (badgeSize < m_windowDpi->Scale(12))
 			{
-				badgeSize = m_windowDpi->Scale(14);
+				badgeSize = m_windowDpi->Scale(12);
 			}
 
 			int badgeTop = cardRect.top + (cardRect.Height() - badgeSize) / 2;
@@ -1220,7 +1205,7 @@ BOOL CQListCtrl::DrawBitMap(int nItem, CRect& crRect, CDC* pDC, const CString& c
 		{
 			//Will return the width of the bitmap in nWidth
 			int nWidth = 0;
-			if (CBitmapHelper::DrawDIB(pDC, smallImage, crRect.left, crRect.top, nWidth))
+			if (CBitmapHelper::DrawDIB(pDC, smallImage, crRect.left, crRect.top, nWidth, crRect.Height(), crRect.Width()))
 			{
 				// adjust the rect so other information can be drawn next to the thumbnail
 				crRect.left += nWidth + 3;
@@ -2346,10 +2331,10 @@ void CQListCtrl::CreateSmallFont()
 	LOGFONT lf;
 
 	int fontSize = CGetSetOptions::GetFirstTenHotKeysFontSize();
-	if (fontSize < 9)
+	if (fontSize < 8)
 	{
 		// Keep the index readable even if the stored option is very small.
-		fontSize = 9;
+		fontSize = 8;
 	}
 
 	lf.lfHeight = -MulDiv(fontSize, m_windowDpi->GetDPI(), 72);

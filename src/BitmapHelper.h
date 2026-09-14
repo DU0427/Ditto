@@ -26,7 +26,7 @@ public:
 	static HANDLE	hBitmapToDIB(HBITMAP hBitmap, DWORD dwCompression, HPALETTE hPal);
 	static WORD		PaletteSize(LPSTR lpDIB);
 	static WORD		DIBNumColors(LPSTR lpDIB);
-	static bool		DrawDIB(CDC* pDC, HANDLE hData, int nLeft, int nRight, int& nWidth);
+	static bool	DrawDIB(CDC* pDC, HANDLE hData, int nLeft, int nRight, int& nWidth, int nMaxHeight = 0, int nMaxWidth = 0);
 
 };
 

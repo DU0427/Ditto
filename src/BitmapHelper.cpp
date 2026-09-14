@@ -356,7 +356,7 @@ HANDLE CBitmapHelper::hBitmapToDIB(HBITMAP hBitmap, DWORD dwCompression, HPALETT
 }
 
 
-bool CBitmapHelper::DrawDIB(CDC* pDC, HANDLE hData, int nLeft, int nRight, int& nWidth)
+bool CBitmapHelper::DrawDIB(CDC* pDC, HANDLE hData, int nLeft, int nRight, int& nWidth, int nMaxHeight, int nMaxWidth)
 {
 	LPBITMAPINFO	lpBI;
 	void* pDIBBits;
@@ -377,14 +377,30 @@ bool CBitmapHelper::DrawDIB(CDC* pDC, HANDLE hData, int nLeft, int nRight, int& 
 		pDIBBits = (LPVOID)(lpBI->bmiColors + nColors);
 	}
 
+	int destWidth = lpBI->bmiHeader.biWidth;
+	int destHeight = lpBI->bmiHeader.biHeight;
+
+	// The cached small image is sized to the list row height; shrink it so the
+	// thumbnail stays inside the caller's box (the clip card).
+	if (nMaxHeight > 0 && destHeight > 0 && destHeight > nMaxHeight)
+	{
+		destWidth = MulDiv(destWidth, nMaxHeight, destHeight);
+		destHeight = nMaxHeight;
+	}
+	if (nMaxWidth > 0 && destWidth > 0 && destWidth > nMaxWidth)
+	{
+		destHeight = MulDiv(destHeight, nMaxWidth, destWidth);
+		destWidth = nMaxWidth;
+	}
+
 	::StretchDIBits(pDC->m_hDC,
 		nLeft, nRight,
-		lpBI->bmiHeader.biWidth, lpBI->bmiHeader.biHeight,
+		destWidth, destHeight,
 		0, 0, lpBI->bmiHeader.biWidth,
 		lpBI->bmiHeader.biHeight,
 		pDIBBits, lpBI, DIB_PAL_COLORS, SRCCOPY);
 
-	nWidth = lpBI->bmiHeader.biWidth;
+	nWidth = destWidth;
 
 	GlobalUnlock(hData);
 
