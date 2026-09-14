@@ -238,6 +238,9 @@ public:
 	static BOOL		m_bSendPasteOnFirstTenHotKeys;
 	static void		SetSendPasteOnFirstTenHotKeys(BOOL bOption);
 	static BOOL		GetSendPasteOnFirstTenHotKeys();
+	static BOOL		m_overrideWinVHotKey;
+	static void		SetOverrideWinVHotKey(BOOL bOption);
+	static BOOL		GetOverrideWinVHotKey();
 
 	static CSendClients m_SendClients[MAX_SEND_CLIENTS];
 	static long		m_lAutoSendClientCount;

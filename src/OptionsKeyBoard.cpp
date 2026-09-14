@@ -53,6 +53,7 @@ void COptionsKeyBoard::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_STATIC_CUSTOM_KEYS, m_CustomeKeysHelp);
 	DDX_Control(pDX, IDC_CHECK_MOVE_CLIPS_ON_PASTE, m_btMoveClipOnGlobal10);
+	DDX_Control(pDX, IDC_CHECK_OVERRIDE_WINV, m_btOverrideWinV);
 	DDX_Control(pDX, IDC_HOTKEY_SAVE_CLIPBOARD, m_saveClipboardHotKey);
 	DDX_Control(pDX, IDC_HOTKEY_COPYSAVECLIPBOARD, m_copyAndSaveClipboardCtrl);
 }
@@ -100,6 +101,8 @@ BOOL COptionsKeyBoard::OnInitDialog()
 
 	m_btMoveClipOnGlobal10.SetCheck(CGetSetOptions::GetMoveClipsOnGlobal10());
 
+	m_btOverrideWinV.SetCheck(CGetSetOptions::GetOverrideWinVHotKey());
+
 	m_HotKey.SetFocus();
 
 	theApp.m_Language.UpdateOptionShortcuts(this);	
@@ -121,6 +124,7 @@ BOOL COptionsKeyBoard::OnApply()
 {
 	CGetSetOptions::SetSendPasteOnFirstTenHotKeys(m_btSendPaste.GetCheck());
 	CGetSetOptions::SetMoveClipsOnGlobal10(m_btMoveClipOnGlobal10.GetCheck());
+	CGetSetOptions::SetOverrideWinVHotKey(m_btOverrideWinV.GetCheck());
 	CGetSetOptions::SetUseUISelectedGroupForLastTenCopies(m_UseUiGroupForLastTen.GetCheck());
 					
 	INT_PTR x,y;

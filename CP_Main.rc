@@ -876,6 +876,8 @@ BEGIN
     LTEXT           "Save Current Clipboard",IDC_STATIC_COLLECT_CLIPBOARD,12,74,77,14,SS_CENTERIMAGE
     CONTROL         "",IDC_HOTKEY_ACTIVATE_2,"msctls_hotkey32",WS_BORDER | WS_TABSTOP,128,26,80,14
     CONTROL         "Win",IDC_CHECK_WIN_DITTO2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,210,26,33,14
+    CONTROL         "Override Windows Win+V (open Ditto instead of the Windows clipboard history)",IDC_CHECK_OVERRIDE_WINV,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,94,349,10
     LTEXT           "Activate Ditto",IDC_STATIC_ACTIVATE3,12,26,71,14,SS_CENTERIMAGE
     CONTROL         "",IDC_HOTKEY_ACTIVATE_3,"msctls_hotkey32",WS_BORDER | WS_TABSTOP,128,42,80,14
     CONTROL         "Win",IDC_CHECK_WIN_DITTO3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,210,42,33,14

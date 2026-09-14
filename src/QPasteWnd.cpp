@@ -77,6 +77,7 @@ CQPasteWnd::CQPasteWnd()
 	m_bHideWnd = true;
 	m_strSQLSearch = "";
 	m_strSearch = "";
+	m_maxRowTextWidth = 0;
 	m_bHandleSearchTextChange = true;
 	m_bModifersMoveActive = false;
 	m_showScrollBars = false;
@@ -666,6 +667,8 @@ void CQPasteWnd::OnSize(UINT nType, int cx, int cy)
 	m_popupMsg.Hide();
 
 	MoveControls();
+
+	UpdateListColumnWidth();
 }
 
 void CQPasteWnd::MoveControls()
@@ -2242,6 +2245,8 @@ void CQPasteWnd::UpdateFont()
 	m_noSearchResultsStatic.SetFont(&m_SearchFont);
 
 	m_lstHeader.CreateSmallFont();
+
+	RecalculateListColumnWidth();
 }
 
 void CQPasteWnd::OnMenuFirsttenhotkeysUsectrlnum()
@@ -6417,6 +6422,126 @@ void CQPasteWnd::OnUpdateMenuNewclip(CCmdUI* pCmdUI)
 	UpdateMenuShortCut(pCmdUI, ActionEnums::NEWCLIP);
 }
 
+int CQPasteWnd::MeasureRowTextWidth(int nRow)
+{
+	ATL::CCritSecLock csLock(m_CritSection.m_sect);
+
+	if (nRow < 0 || nRow >= (int)m_listItems.size() || m_listItems[nRow].m_lID <= 0)
+	{
+		return 0;
+	}
+
+	CString csText = CMainTableFunctions::GetDisplayText(CGetSetOptions::m_nLinesPerRow, m_listItems[nRow].m_Desc);
+	if (csText.GetLength() > CGetSetOptions::m_bDescTextSize)
+	{
+		csText = csText.Left(CGetSetOptions::m_bDescTextSize);
+	}
+
+	if (csText.IsEmpty() || !::IsWindow(m_lstHeader.m_hWnd))
+	{
+		return 0;
+	}
+
+	// Space taken to the left of the text: the card inset plus the text padding,
+	// replaced by the wider hot key badge layout on the first ten rows.
+	int nTextLeft = m_DittoWindow.m_dpi.Scale(4 + 13);
+
+	if (nRow < 10 && m_lstHeader.GetShowTextForFirstTenHotKeys())
+	{
+		int nBadgeSize = m_lstHeader.GetRowHeight() - m_DittoWindow.m_dpi.Scale(20);
+		if (nBadgeSize < m_DittoWindow.m_dpi.Scale(12))
+		{
+			nBadgeSize = m_DittoWindow.m_dpi.Scale(12);
+		}
+
+		nTextLeft = m_DittoWindow.m_dpi.Scale(4 + 8) + nBadgeSize + m_DittoWindow.m_dpi.Scale(8);
+	}
+
+	int nIcons = 0;
+	if (m_listItems[nRow].m_bDontAutoDelete) nIcons++;
+	if (m_listItems[nRow].m_bHasShortCut) nIcons++;
+	if (m_listItems[nRow].m_bIsGroup) nIcons++;
+	if (m_listItems[nRow].m_bHasParent && theApp.m_GroupID == 0) nIcons++;
+	if (theApp.m_GroupID > 0 ? (m_listItems[nRow].m_stickyClipGroupOrder != INVALID_STICKY)
+		: (m_listItems[nRow].m_stickyClipOrder != INVALID_STICKY))
+	{
+		nIcons++;
+	}
+
+	if (nIcons > 0)
+	{
+		// Icons are loaded at 16px * dpi/96, plus a 2px gap each.
+		nTextLeft += nIcons * m_DittoWindow.m_dpi.Scale(18);
+	}
+
+	CClientDC dc(&m_lstHeader);
+	CFont* pOldFont = dc.SelectObject(m_lstHeader.GetFont());
+	int nWidth = dc.GetTextExtent(csText).cx;
+	dc.SelectObject(pOldFont);
+
+	// Image clips draw a thumbnail (sized to the row height) before the text.
+	if (csText.Find(_T("CF_DIB")) == 0)
+	{
+		nWidth += m_lstHeader.GetRowHeight();
+	}
+
+	// Room for the text plus the card's right padding.
+	return nTextLeft + nWidth + m_DittoWindow.m_dpi.Scale(8);
+}
+
+void CQPasteWnd::UpdateListColumnWidth()
+{
+	// The list uses a single report column. Size it to the longest loaded clip so
+	// the horizontal scrollbar reflects the real content instead of a fixed
+	// 2500px column that let the user scroll far into empty space.
+	if (!::IsWindow(m_lstHeader.m_hWnd))
+	{
+		return;
+	}
+
+	// m_maxRowTextWidth already includes the space the row needs around the text
+	// (see MeasureRowTextWidth), so it can be used as the column width directly.
+	int nWidth = m_maxRowTextWidth;
+
+	// Never narrower than the popup, so the clip cards stay full width. Leave
+	// the same 4px right margin the card drawing uses on the left.
+	CRect rcClient;
+	GetClientRect(rcClient);
+	int nMinWidth = rcClient.Width() - m_DittoWindow.m_dpi.Scale(4);
+	if (nMinWidth < m_DittoWindow.m_dpi.Scale(20))
+	{
+		nMinWidth = m_DittoWindow.m_dpi.Scale(20);
+	}
+	if (nWidth < nMinWidth)
+	{
+		nWidth = nMinWidth;
+	}
+
+	if (m_lstHeader.GetColumnWidth(0) != nWidth)
+	{
+		m_lstHeader.SetColumnWidth(0, nWidth);
+
+		// Let the modern scrollbars recompute their thumbs for the new range.
+		PostMessage(NM_UPDATE_SCROLLBAR, FALSE, 0);
+	}
+}
+
+void CQPasteWnd::RecalculateListColumnWidth()
+{
+	m_maxRowTextWidth = 0;
+
+	for (int i = 0; i < (int)m_listItems.size(); i++)
+	{
+		int nWidth = MeasureRowTextWidth(i);
+		if (nWidth > m_maxRowTextWidth)
+		{
+			m_maxRowTextWidth = nWidth;
+		}
+	}
+
+	UpdateListColumnWidth();
+}
+
 LRESULT CQPasteWnd::OnSetListCount(WPARAM wParam, LPARAM lParam)
 {
 	m_noSearchResults = false;
@@ -6426,6 +6551,10 @@ LRESULT CQPasteWnd::OnSetListCount(WPARAM wParam, LPARAM lParam)
 	m_lstHeader.Scroll(CSize(-x, -y));
 
 	m_lstHeader.SetItemCountEx((int)wParam);
+
+	// New result set: drop the cached text width and resize the column.
+	m_maxRowTextWidth = 0;
+	UpdateListColumnWidth();
 
 	if ((int)wParam == 0 &&
 		(m_strSearch != _T("") || m_bShowStarredClips))
@@ -6461,6 +6590,14 @@ LRESULT CQPasteWnd::OnRefeshRow(WPARAM wParam, LPARAM lParam)
 {
 	int clipId = (int)wParam;
 	int listPos = (int)lParam;
+
+	// Track the longest clip text so the horizontal scroll range matches content.
+	int nRowWidth = MeasureRowTextWidth(listPos);
+	if (nRowWidth > m_maxRowTextWidth)
+	{
+		m_maxRowTextWidth = nRowWidth;
+		UpdateListColumnWidth();
+	}
 
 	int topIndex = m_lstHeader.GetTopIndex();
 	int lastIndex = topIndex + m_lstHeader.GetCountPerPage();

@@ -52,7 +52,7 @@ void CTheme::LoadDefaults()
 	m_searchTextBoxFocusBG = RGB(255, 255, 255);
 	m_searchTextBoxFocusText = RGB(27, 27, 27);
 	m_searchTextBoxFocusBorder = RGB(0, 103, 192);
-	m_searchTextHighlight = RGB(0, 103, 192);
+	m_searchTextHighlight = RGB(220, 38, 38);
 
 	m_groupTreeBG = RGB(243, 243, 243);
 	m_groupTreeText = RGB(97, 97, 97);
@@ -213,7 +213,8 @@ void CTheme::LoadWindowsAccentColor()
 
 		m_clipPastedColor = RGB(b, g, r);
 		m_searchTextBoxFocusBorder = m_clipPastedColor;
-		m_searchTextHighlight = m_clipPastedColor;
+		// The search hit highlight keeps its own color (red) instead of the
+		// system accent so matches stand out against the accent colored UI.
 
 		//if (Windows10ColorTitleBar())
 		//{

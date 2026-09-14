@@ -4,6 +4,7 @@
 #include "Misc.h"
 #include "SendKeys.h"
 #include "Accels.h"
+#include "CP_Main.h"
 
 CHotKeys g_HotKeys;
 
@@ -536,4 +537,110 @@ bool CHotKeys::FindFirstConflict(INT_PTR* pX, INT_PTR* pY)
 	ARRAY keys;
 	GetKeys(keys);
 	return FindFirstConflict(keys, pX, pY);
+}
+
+// ---------------------------------------------------------------------------
+// Win+V override
+//
+// Windows registers Win+V for its own clipboard history flyout, so
+// RegisterHotKey fails for that combination (ERROR_HOTKEY_ALREADY_REGISTERED).
+// A low level keyboard hook can still take it over: swallow the key so the
+// flyout never opens and fire Ditto's quick paste instead. The Windows key
+// release is swallowed as well, otherwise the shell opens the start menu
+// (it never saw another key while the Windows key was held down).
+static HHOOK g_hWinVKeyboardHook = NULL;
+static HWND g_hWinVNotifyWnd = NULL;
+static bool g_bWinVConsumed = false;
+static bool g_bWinVTriggered = false;
+
+static LRESULT CALLBACK WinVLowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	if (nCode != HC_ACTION ||
+		g_hWinVNotifyWnd == NULL ||
+		CGetSetOptions::GetOverrideWinVHotKey() == FALSE)
+	{
+		return ::CallNextHookEx(g_hWinVKeyboardHook, nCode, wParam, lParam);
+	}
+
+	KBDLLHOOKSTRUCT* pKey = (KBDLLHOOKSTRUCT*)lParam;
+	BOOL bKeyDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+	BOOL bKeyUp = (wParam == WM_KEYUP || wParam == WM_SYSKEYUP);
+	BOOL bWinKey = (pKey->vkCode == VK_LWIN || pKey->vkCode == VK_RWIN);
+
+	if (bKeyUp && bWinKey)
+	{
+		bool bConsumed = g_bWinVConsumed;
+		g_bWinVConsumed = false;
+		g_bWinVTriggered = false;
+
+		if (bConsumed)
+		{
+			// Swallow the Windows key release so the start menu stays closed.
+			return 1;
+		}
+	}
+	else if (pKey->vkCode == 'V' &&
+		((::GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 ||
+			(::GetAsyncKeyState(VK_RWIN) & 0x8000) != 0))
+	{
+		if (bKeyDown)
+		{
+			// Only plain Win+V: leave Win+Shift+V and friends alone.
+			BOOL bOtherModifier =
+				((::GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) ||
+				((::GetAsyncKeyState(VK_MENU) & 0x8000) != 0) ||
+				((::GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0);
+
+			if (!bOtherModifier)
+			{
+				g_bWinVConsumed = true;
+
+				if (!g_bWinVTriggered)
+				{
+					g_bWinVTriggered = true;
+
+					// Fire the normal Ditto hot key so the quick paste window
+					// behaves exactly like the configured shortcut.
+					if (theApp.m_pDittoHotKey != NULL)
+					{
+						::PostMessage(g_hWinVNotifyWnd, WM_HOTKEY, theApp.m_pDittoHotKey->m_Atom, 0);
+					}
+				}
+			}
+		}
+		else if (bKeyUp)
+		{
+			g_bWinVTriggered = false;
+		}
+
+		// Swallow Win+V so the Windows clipboard flyout does not open.
+		return 1;
+	}
+
+	return ::CallNextHookEx(g_hWinVKeyboardHook, nCode, wParam, lParam);
+}
+
+bool CHotKeys::InstallWinVHotKeyOverride(HWND hNotifyWnd)
+{
+	g_hWinVNotifyWnd = hNotifyWnd;
+
+	if (g_hWinVKeyboardHook == NULL)
+	{
+		g_hWinVKeyboardHook = ::SetWindowsHookEx(WH_KEYBOARD_LL, WinVLowLevelKeyboardProc, ::GetModuleHandle(NULL), 0);
+	}
+
+	return g_hWinVKeyboardHook != NULL;
+}
+
+void CHotKeys::RemoveWinVHotKeyOverride()
+{
+	if (g_hWinVKeyboardHook != NULL)
+	{
+		::UnhookWindowsHookEx(g_hWinVKeyboardHook);
+		g_hWinVKeyboardHook = NULL;
+	}
+
+	g_hWinVNotifyWnd = NULL;
+	g_bWinVConsumed = false;
+	g_bWinVTriggered = false;
 }

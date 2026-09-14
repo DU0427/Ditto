@@ -31,6 +31,7 @@ public:
 	CButton	m_btSendPaste;
 	CButton	m_UseUiGroupForLastTen;
 	CButton	m_btMoveClipOnGlobal10;
+	CButton	m_btOverrideWinV;
 	CHotKeyCtrl	m_Nine;
 	CHotKeyCtrl	m_Eight;
 	CHotKeyCtrl	m_Seven;

@@ -26,8 +26,6 @@ static char THIS_FILE[] = __FILE__;
 
 #define ROW_BOTTOM_BORDER		12
 #define ROW_LEFT_BORDER			3
-#define COLOR_SHADOW			RGB(245, 245, 245)
-#define DUMMY_COL_WIDTH			2
 
 #define TIMER_SHOW_PROPERTIES	1
 #define TIMER_HIDE_SCROL	2
@@ -210,6 +208,8 @@ CQListCtrl::CQListCtrl()
 	m_allSelected = false;
 	m_rowHeight = 50;
 	m_mouseOverScrollAreaStart = 0;
+	m_nHoverItem = -1;
+	m_bHoverTracking = false;
 	m_showIfClipWasPasted = TRUE;
 	m_bShowTextForFirstTenHotKeys = true;
 	m_pToolTipActions = NULL;
@@ -259,6 +259,7 @@ BEGIN_MESSAGE_MAP(CQListCtrl, CListCtrl)
 	ON_NOTIFY_REFLECT(LVN_KEYDOWN, OnKeydown)
 	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomdrawList)
 	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSELEAVE()
 	ON_WM_SYSKEYDOWN()
 	ON_WM_ERASEBKGND()
 	ON_WM_CREATE()
@@ -520,7 +521,8 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 
 		CBrush cardBrush(crBkgnd);
 		CPen cardPen(PS_SOLID, m_windowDpi->Scale(1),
-			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() : RGB(231, 231, 231));
+			(rItem.state & LVIS_SELECTED) ? CGetSetOptions::m_Theme.ClipPastedColor() :
+			((nItem == m_nHoverItem) ? RGB(205, 205, 205) : RGB(231, 231, 231)));
 		CBrush* oldBrush = pDC->SelectObject(&cardBrush);
 		CPen* oldPen = pDC->SelectObject(&cardPen);
 		pDC->RoundRect(cardRect, CPoint(m_windowDpi->Scale(6), m_windowDpi->Scale(6)));
@@ -590,34 +592,37 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 		// draw the symbol box
 		if (strSymbols.GetLength() > 0)
 		{
+			// Center the symbol icons vertically inside the clip card.
+			auto drawSymbolIcon = [&](CGdiImageDrawer& image)
+			{
+				int nIconTop = rcText.top + (rcText.Height() - (int)image.ImageHeight()) / 2;
+				image.Draw(pDC, *m_windowDpi, this, rcText.left, nIconTop, false, false);
+				rcText.left += image.ImageWidth() + m_windowDpi->Scale(2);
+			};
+
 			if (strSymbols.Find(_T("<group>")) >= 0) //group
 			{
-				m_groupFolder.Draw(pDC, *m_windowDpi, this, rcText.left, rcText.top, false, false);
-				rcText.left += m_groupFolder.ImageWidth() + m_windowDpi->Scale(2);
+				drawSymbolIcon(m_groupFolder);
 			}
 			if (strSymbols.Find(_T("<noautodelete>")) >= 0) //don't auto delete
 			{
-				m_dontDeleteImage.Draw(pDC, *m_windowDpi, this, rcText.left, rcText.top, false, false);
-				rcText.left += m_dontDeleteImage.ImageWidth() + m_windowDpi->Scale(2);
+				drawSymbolIcon(m_dontDeleteImage);
 			}
 			if (strSymbols.Find(_T("<shortcut>")) >= 0) // has shortcut
 			{
-				m_shortCutImage.Draw(pDC, *m_windowDpi, this, rcText.left, rcText.top, false, false);
-				rcText.left += m_shortCutImage.ImageWidth() + m_windowDpi->Scale(2);
+				drawSymbolIcon(m_shortCutImage);
 			}
 			if (drawInGroupIcon &&
 				strSymbols.Find(_T("<ingroup>")) >= 0) // in group
 			{
-				m_inFolderImage.Draw(pDC, *m_windowDpi, this, rcText.left, rcText.top, false, false);
-				rcText.left += m_inFolderImage.ImageWidth() + m_windowDpi->Scale(2);
+				drawSymbolIcon(m_inFolderImage);
 			}
 			if (strSymbols.Find(_T("<qpastetext>")) >= 0) // has quick paste text
 			{
 			}
 			if (strSymbols.Find(_T("<sticky>")) >= 0) //sticky clip
 			{
-				m_stickyImage.Draw(pDC, *m_windowDpi, this, rcText.left, rcText.top, false, false);
-				rcText.left += m_stickyImage.ImageWidth() + m_windowDpi->Scale(2);
+				drawSymbolIcon(m_stickyImage);
 			}
 		}
 
@@ -2172,7 +2177,54 @@ void CQListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		}
 	}
 
+	// Track the row under the mouse so it gets a hover highlight.
+	if (!m_bHoverTracking)
+	{
+		TRACKMOUSEEVENT tme = { sizeof(TRACKMOUSEEVENT) };
+		tme.dwFlags = TME_LEAVE;
+		tme.hwndTrack = m_hWnd;
+		TrackMouseEvent(&tme);
+		m_bHoverTracking = true;
+	}
+
+	int nHoverItem = -1;
+	LVHITTESTINFO hitTest = { 0 };
+	hitTest.pt = point;
+	if (HitTest(&hitTest) >= 0)
+	{
+		nHoverItem = hitTest.iItem;
+	}
+
+	if (nHoverItem != m_nHoverItem)
+	{
+		int nPreviousHover = m_nHoverItem;
+		m_nHoverItem = nHoverItem;
+
+		if (nPreviousHover >= 0)
+		{
+			RedrawItems(nPreviousHover, nPreviousHover);
+		}
+		if (m_nHoverItem >= 0)
+		{
+			RedrawItems(m_nHoverItem, m_nHoverItem);
+		}
+	}
+
 	CListCtrl::OnMouseMove(nFlags, point);
+}
+
+void CQListCtrl::OnMouseLeave()
+{
+	m_bHoverTracking = false;
+
+	if (m_nHoverItem >= 0)
+	{
+		int nPreviousHover = m_nHoverItem;
+		m_nHoverItem = -1;
+		RedrawItems(nPreviousHover, nPreviousHover);
+	}
+
+	CListCtrl::OnMouseLeave();
 }
 
 int CQListCtrl::MouseInScrollBarArea(CRect crWindow, CPoint point)
@@ -2350,7 +2402,7 @@ void CQListCtrl::CreateSmallFont()
 	lf.lfClipPrecision = CLIP_STROKE_PRECIS;
 	lf.lfQuality = DEFAULT_QUALITY;
 	lf.lfPitchAndFamily = VARIABLE_PITCH | FF_DONTCARE;
-	lstrcpy(lf.lfFaceName, _T("Small Font"));
+	lstrcpy(lf.lfFaceName, _T("Segoe UI"));
 
 	m_SmallFont = ::CreateFontIndirect(&lf);
 }

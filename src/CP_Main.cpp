@@ -506,6 +506,11 @@ void CCP_MainApp::AfterMainCreate()
 	LoadGlobalClips();
 
 	g_HotKeys.RegisterAll();
+
+	// Take over the Windows Win+V shortcut (when enabled in the options) so it
+	// opens Ditto instead of the Windows clipboard history flyout.
+	g_HotKeys.InstallWinVHotKeyOverride(m_MainhWnd);
+
 	StartCopyThread();
 	StartStopServerThread();
 
@@ -913,6 +918,9 @@ void CCP_MainApp::ShowPersistent(bool bVal)
 int CCP_MainApp::ExitInstance() 
 {
 	Log(_T("ExitInstance"));
+
+	// Remove the low level keyboard hook before the process goes away.
+	g_HotKeys.RemoveWinVHotKeyOverride();
 
 	DeleteDittoTempFiles(FALSE);
 

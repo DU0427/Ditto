@@ -126,6 +126,12 @@ public:
 
     void UpdateFont();
 
+	// Keeps the single list column width in sync with the longest clip text so
+	// the horizontal scroll range matches the real content.
+	int MeasureRowTextWidth(int nRow);
+	void UpdateListColumnWidth();
+	void RecalculateListColumnWidth();
+
     //protected:
     CQListCtrl m_lstHeader;
 
@@ -136,6 +142,7 @@ public:
     bool m_bHideWnd;
     CString m_strSQLSearch;
 	CString m_strSearch;
+	int m_maxRowTextWidth;
     CGroupStatic m_stGroup;
     CFont m_groupFont;
     CString m_Title;

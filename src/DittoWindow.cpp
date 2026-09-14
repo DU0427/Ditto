@@ -466,7 +466,55 @@ void CDittoWindow::DrawChevronBtn(CWindowDC &dc, CWnd *pWnd)
 	{
 		return;
 	}
-		
+
+	// A caption on the top/bottom collapses the window up/down, so draw an
+	// up/down chevron there instead of the left/right one.
+	if (m_captionPosition == CAPTION_TOP || m_captionPosition == CAPTION_BOTTOM)
+	{
+		bool bPointsUp = (m_bMinimized == false);
+		if (m_captionPosition == CAPTION_BOTTOM)
+		{
+			bPointsUp = (m_bMinimized == true);
+		}
+
+		// Matches the chevron images (RGB 100) including their hover brightening.
+		int nShade = m_bMouseOverChevron ? 118 : 100;
+
+		Gdiplus::Graphics graphics(dc.m_hDC);
+		graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+
+		Gdiplus::Pen pen(Gdiplus::Color(255, nShade, nShade, nShade), (Gdiplus::REAL)m_dpi.Scale(2));
+		pen.SetStartCap(Gdiplus::LineCapRound);
+		pen.SetEndCap(Gdiplus::LineCapRound);
+		pen.SetLineJoin(Gdiplus::LineJoinRound);
+
+		CPoint ptCenter = m_crChevronBT.CenterPoint();
+		if (m_bMouseDownOnChevron)
+		{
+			// Pressed state nudges the glyph like the image based buttons do.
+			ptCenter.x -= 1;
+			ptCenter.y -= 1;
+		}
+
+		Gdiplus::REAL x = (Gdiplus::REAL)ptCenter.x;
+		Gdiplus::REAL y = (Gdiplus::REAL)ptCenter.y;
+		Gdiplus::REAL nHalfWidth = (Gdiplus::REAL)m_dpi.Scale(5);
+		Gdiplus::REAL nHalfHeight = (Gdiplus::REAL)m_dpi.Scale(4);
+
+		if (bPointsUp)
+		{
+			graphics.DrawLine(&pen, x - nHalfWidth, y + nHalfHeight, x, y - nHalfHeight);
+			graphics.DrawLine(&pen, x, y - nHalfHeight, x + nHalfWidth, y + nHalfHeight);
+		}
+		else
+		{
+			graphics.DrawLine(&pen, x - nHalfWidth, y - nHalfHeight, x, y + nHalfHeight);
+			graphics.DrawLine(&pen, x, y + nHalfHeight, x + nHalfWidth, y - nHalfHeight);
+		}
+
+		return;
+	}
+
 	if(this->m_bMinimized)
 	{
 		m_chevronLeftButton.Draw(&dc, m_dpi, pWnd, m_crChevronBT, m_bMouseOverChevron, m_bMouseDownOnChevron);

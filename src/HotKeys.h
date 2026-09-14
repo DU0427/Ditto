@@ -84,6 +84,11 @@ public:
 	static bool FindFirstConflict( ARRAY& keys, INT_PTR* pX = NULL, INT_PTR* pY = NULL );
 	// if true, pX and pY (if valid) are set to the index of the conflicting hotkeys.
 	bool FindFirstConflict( INT_PTR* pX = NULL, INT_PTR* pY = NULL );
+
+	// Optional low level keyboard hook that takes over the Windows "Win+V"
+	// shortcut, which RegisterHotKey cannot because the shell owns it.
+	bool InstallWinVHotKeyOverride(HWND hNotifyWnd);
+	void RemoveWinVHotKeyOverride();
 };
 
 extern CHotKeys g_HotKeys;

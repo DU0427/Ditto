@@ -73,6 +73,7 @@ __int64 CGetSetOptions::nLastDbWriteTime = 0;
 CTheme CGetSetOptions::m_Theme;
 BOOL CGetSetOptions::m_showScrollBar = false;
 BOOL CGetSetOptions::m_useModernScrollBar = TRUE;
+BOOL CGetSetOptions::m_overrideWinVHotKey = FALSE;
 BOOL CGetSetOptions::m_bShowAlwaysOnTopWarning = TRUE;
 CRegExFilterHelper CGetSetOptions::m_regexHelper;
 CString CGetSetOptions::m_ignoreAnnoyingCFDIB = "";
@@ -290,6 +291,7 @@ void CGetSetOptions::LoadSettings()
 	m_bEnsureConnectToClipboard = GetEnsureConnectToClipboard();
 	m_showScrollBar = GetShowScrollBar();
 	m_useModernScrollBar = GetUseModernScrollBar();
+	m_overrideWinVHotKey = GetOverrideWinVHotKey();
 	m_bShowAlwaysOnTopWarning = GetShowAlwaysOnTopWarning();
 	m_ignoreAnnoyingCFDIB = GetIgnoreAnnoyingCFDIB();
 	m_doubleKeyStrokeTimeout = GetDoubleKeyStrokeTimeout();
@@ -1283,9 +1285,20 @@ void CGetSetOptions::SetShowTextForFirstTenHotKeys(BOOL bVal)
 {	
 	SetProfileLong("ShowTextForFirstTenHotKeys", bVal);			
 }
-BOOL CGetSetOptions::GetShowTextForFirstTenHotKeys()			
-{	
-	return GetProfileLong("ShowTextForFirstTenHotKeys", TRUE);	
+BOOL CGetSetOptions::GetShowTextForFirstTenHotKeys()
+{
+	return GetProfileLong("ShowTextForFirstTenHotKeys", TRUE);
+}
+
+void CGetSetOptions::SetOverrideWinVHotKey(BOOL bOption)
+{
+	m_overrideWinVHotKey = bOption;
+	SetProfileLong("OverrideWinVHotKey", bOption);
+}
+
+BOOL CGetSetOptions::GetOverrideWinVHotKey()
+{
+	return GetProfileLong("OverrideWinVHotKey", FALSE);
 }
 
 void CGetSetOptions::SetMainHWND(long lhWnd)	

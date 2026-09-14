@@ -125,6 +125,7 @@ public:
 	void GetToolTipText(int nItem, CString &csText);
 
 	void SetShowTextForFirstTenHotKeys(BOOL bVal)	{ m_bShowTextForFirstTenHotKeys = bVal;	}
+	BOOL GetShowTextForFirstTenHotKeys() const		{ return m_bShowTextForFirstTenHotKeys;	}
 	void SetShowIfClipWasPasted(BOOL val) { m_showIfClipWasPasted = val; }
 
 	void DestroyAndCreateAccelerator(BOOL bCreate, CppSQLite3DB &db);
@@ -191,6 +192,8 @@ protected:
 	int m_linesPerRow;
 	DWORD m_mouseOverScrollAreaStart;
 	bool m_timerToHideScrollAreaSet;
+	int m_nHoverItem;
+	bool m_bHoverTracking;
 	CGdiImageDrawer m_groupFolder;
 	CGdiImageDrawer m_dontDeleteImage;
 	CGdiImageDrawer m_inFolderImage;
@@ -221,6 +224,7 @@ protected:
 	afx_msg BOOL OnToolTipText(UINT id, NMHDR * pNMHDR, LRESULT * pResult);
 	afx_msg void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnMouseLeave();
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnKillFocus(CWnd* pNewWnd);

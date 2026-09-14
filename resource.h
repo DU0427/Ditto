@@ -346,6 +346,7 @@
 #define IDC_CHECK_LAST_USE_DATE         1044
 #define IDC_CHECK_MOVE_CLIPS_ON_PASTE2  1044
 #define IDC_CHECK_USE_UI_GROUP_LAST_10  1044
+#define IDC_CHECK_OVERRIDE_WINV         5003
 #define IDC_CHECK_DATA_FORMAT           1045
 #define IDC_PLAY_SOUND_4                1045
 #define IDC_PLAY_SOUND_5                1046
