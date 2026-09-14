@@ -369,6 +369,9 @@
 #define IDC_CHECK_MOVE_CLIPS_ON_PASTE2  1044
 #define IDC_CHECK_USE_UI_GROUP_LAST_10  1044
 #define IDC_CHECK_OVERRIDE_WINV         5003
+#define IDI_DITTO_TRAY                  5004
+#define IDI_DITTO_TRAY_NOCOPYCB         5005
+#define IDI_DITTO_TRAY_NO_DB            5006
 #define IDC_CHECK_DATA_FORMAT           1045
 #define IDC_PLAY_SOUND_4                1045
 #define IDC_PLAY_SOUND_5                1046

@@ -73,6 +73,9 @@ IDR_CP_MAITYPE          ICON                    "res\\CP_MainDoc.ico"
 IDI_DITTO_NOCOPYCB      ICON                    "res\\Ditto2_NoCopyCb.ico"
 
 IDI_MAINFRAME_NO_DB     ICON                    "res\\Ditto2_NoDb.ico"
+IDI_DITTO_TRAY          ICON                    "res\\Ditto2_Tray.ico"
+IDI_DITTO_TRAY_NOCOPYCB ICON                    "res\\Ditto2_Tray_NoCopyCb.ico"
+IDI_DITTO_TRAY_NO_DB    ICON                    "res\\Ditto2_Tray_NoDb.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

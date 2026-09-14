@@ -143,7 +143,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     SetWindowText(_T("Ditto"));
 	
-	m_trayIcon.Create(this, IDR_MENU, _T("Ditto"), CTrayNotifyIcon::LoadIcon(IDR_MAINFRAME), WM_TRAYNOTIFY, 0, 1);
+	m_trayIcon.Create(this, IDR_MENU, _T("Ditto"), CTrayNotifyIcon::LoadIcon(IDI_DITTO_TRAY), WM_TRAYNOTIFY, 0, 1);
 	m_trayIcon.SetDefaultMenuItem(ID_FIRST_SHOWQUICKPASTE, FALSE);	    
 
 	//removed to keep Ditto from taking focus on start
@@ -1431,7 +1431,7 @@ LRESULT CMainFrame::OnReAddTaskBarIcon(WPARAM wParam, LPARAM lParam)
 {
 	if(CGetSetOptions::GetShowIconInSysTray())
 	{
-		m_trayIcon.SetIcon(CTrayNotifyIcon::LoadIcon(IDR_MAINFRAME));
+		m_trayIcon.SetIcon(CTrayNotifyIcon::LoadIcon(IDI_DITTO_TRAY));
 	}
 	return TRUE;
 }

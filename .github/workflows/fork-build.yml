@@ -40,11 +40,20 @@ jobs:
             throw "Portable ZIP was not produced"
           }
 
-      - name: Upload portable ZIP
+      - name: Flatten portable package (avoid zip inside zip)
+        run: |
+          $zip = (Get-ChildItem DittoSetup\Output\*.zip | Select-Object -First 1).FullName
+          Expand-Archive -Path $zip -DestinationPath portable-package -Force
+          if (Test-Path portable-package\Ditto) {
+            Get-ChildItem portable-package\Ditto -Force | Move-Item -Destination portable-package -Force
+            Remove-Item portable-package\Ditto -Force -Recurse
+          }
+
+      - name: Upload portable package
         uses: actions/upload-artifact@v4
         with:
           name: DittoPortable
-          path: DittoSetup\Output\*.zip
+          path: portable-package\**
           if-no-files-found: error
           retention-days: 14
 
