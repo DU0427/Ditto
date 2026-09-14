@@ -168,7 +168,9 @@ protected:
 	BOOL GetClipData(int nItem, CClipFormat &Clip);
 	BOOL DrawBitMap(int nItem, CRect &crRect, CDC *pDC, const CString &csDescription);
 	void LoadDittoCopyBufferHotkeys();
-	bool MouseInScrollBarArea(CRect crWindow, CPoint point);
+	// Returns 0 = not in a scrollbar area, 1 = near right edge (vertical bar),
+	// 2 = near bottom edge (horizontal bar)
+	int MouseInScrollBarArea(CRect crWindow, CPoint point);
 	BOOL DrawRtfText(int nItem, CRect &crRect, CDC *pDC);
 	void StopHideScrollBarTimer();
 	bool IsHexString(const CString& str);

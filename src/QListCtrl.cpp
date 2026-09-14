@@ -1457,7 +1457,10 @@ BOOL CQListCtrl::PreTranslateMessage(MSG* pMsg)
 			CWnd* pParent = GetParent();
 			if (pParent && pParent->GetSafeHwnd())
 			{
-				pParent->PostMessage(NM_UPDATE_SCROLLBAR, TRUE, 0);
+				// 1 = show vertical bar, 2 = show horizontal bar.
+				// Shift + wheel scrolls sideways, so reveal the horizontal bar then.
+				DWORD scrollBarToShow = ((GetKeyState(VK_SHIFT) & 0x8000) != 0) ? 2 : 1;
+				pParent->PostMessage(NM_UPDATE_SCROLLBAR, scrollBarToShow, 0);
 			}
 			return result;
 		}
@@ -2043,7 +2046,7 @@ void CQListCtrl::OnTimer(UINT_PTR nIDEvent)
 
 		//check and see if they moved out of the scroll area
 		//If they did tell our parent so
-		if (MouseInScrollBarArea(crWindow, cursorPos) == false)
+		if (MouseInScrollBarArea(crWindow, cursorPos) == 0)
 		{
 			StopHideScrollBarTimer();
 		}
@@ -2150,7 +2153,8 @@ void CQListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 		// Don't subtract scrollbar size - detect in the full window area
 		// This prevents flickering when scrollbar appears/disappears
 
-		if (MouseInScrollBarArea(crWindow, point))
+		int scrollBarArea = MouseInScrollBarArea(crWindow, point);
+		if (scrollBarArea > 0)
 		{
 			// Show scrollbar immediately when mouse enters scrollbar area
 			if (m_mouseOverScrollAreaStart == 0)
@@ -2160,7 +2164,8 @@ void CQListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 				// For modern scrollbar, notify parent
 				if (CGetSetOptions::m_useModernScrollBar)
 				{
-					GetParent()->PostMessage(NM_UPDATE_SCROLLBAR, TRUE, 0);
+					// Reveal the bar matching the edge the mouse is over
+					GetParent()->PostMessage(NM_UPDATE_SCROLLBAR, scrollBarArea, 0);
 				}
 				else
 				{
@@ -2185,7 +2190,7 @@ void CQListCtrl::OnMouseMove(UINT nFlags, CPoint point)
 	CListCtrl::OnMouseMove(nFlags, point);
 }
 
-bool CQListCtrl::MouseInScrollBarArea(CRect crWindow, CPoint point)
+int CQListCtrl::MouseInScrollBarArea(CRect crWindow, CPoint point)
 {
 	int scrollBarWidth = m_windowDpi->Scale(::GetSystemMetrics(SM_CXVSCROLL));
 	int scrollBarHeight = m_windowDpi->Scale(::GetSystemMetrics(SM_CYHSCROLL));
@@ -2202,12 +2207,17 @@ bool CQListCtrl::MouseInScrollBarArea(CRect crWindow, CPoint point)
 	cs.Format(_T("point.x: %d, Width: %d, Height: %d\n"), point.x, crWindow.Width(), crWindow.Height());
 	OutputDebugString(cs);*/
 
-	if (crRight.PtInRect(point) || crBottom.PtInRect(point))
+	if (crRight.PtInRect(point))
 	{
-		return true;
+		return 1;
 	}
 
-	return false;
+	if (crBottom.PtInRect(point))
+	{
+		return 2;
+	}
+
+	return 0;
 }
 
 void CQListCtrl::StopHideScrollBarTimer()
@@ -2375,7 +2385,8 @@ void CQListCtrl::OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
 	CWnd* pParent = GetParent();
 	if (pParent && pParent->GetSafeHwnd())
 	{
-		pParent->PostMessage(NM_UPDATE_SCROLLBAR, TRUE, 0);
+		// 2 = horizontal wheel -> reveal the horizontal scrollbar
+		pParent->PostMessage(NM_UPDATE_SCROLLBAR, 2, 0);
 	}
 
 	//CListCtrl::OnMouseHWheel(nFlags, zDelta, pt);
