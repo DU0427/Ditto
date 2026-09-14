@@ -63,6 +63,25 @@ HRESULT CFormattedTextDraw::put_RTFText(BSTR newVal)
 	return S_OK;
 }
 
+HRESULT CFormattedTextDraw::SetUniformFont(HFONT hFont)
+{
+	if (!m_spTextServices || hFont == NULL)
+		return S_FALSE;
+
+	CHARFORMAT2W cf;
+	if (FAILED(CharFormatFromHFONT(&cf, hFont)))
+		return E_FAIL;
+
+	// Only the face, the size and the charset are forced. The colours and the
+	// emphasis the RTF itself carries are left alone.
+	cf.dwMask = CFM_FACE | CFM_SIZE | CFM_CHARSET;
+
+	LRESULT lResult = 0;
+	m_spTextServices->TxSendMessage(EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cf, &lResult);
+
+	return S_OK;
+}
+
 HRESULT CFormattedTextDraw::Draw(void *hdcDraw, RECT *prc)
 {
 	if (!m_spTextServices) 

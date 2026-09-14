@@ -56,6 +56,9 @@ public:
 	virtual HRESULT Draw(void *hdcDraw, RECT *prc) = 0;
 	virtual HRESULT get_RTFText(/*[out, retval]*/ BSTR *pVal) = 0;
 	virtual HRESULT put_RTFText(/*[in]*/ BSTR newVal) = 0;
+	// Overrides the face and size of the whole document so the text is drawn at
+	// the host font size instead of the size embedded in the RTF.
+	virtual HRESULT SetUniformFont(HFONT hFont) { return S_FALSE; }
 
 // COM-like functions
     virtual ULONG STDMETHODCALLTYPE AddRef(void) = 0;
@@ -135,6 +138,7 @@ public:
 	HRESULT Draw(void *hdcDraw, RECT *prc);
 	HRESULT get_RTFText(/*[out, retval]*/ BSTR *pVal);
 	HRESULT put_RTFText(/*[in]*/ BSTR newVal);
+	HRESULT SetUniformFont(HFONT hFont);
 
 // ITextHost
 	HDC TxGetDC();

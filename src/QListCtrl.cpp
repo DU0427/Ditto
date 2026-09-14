@@ -643,6 +643,17 @@ void CQListCtrl::OnCustomdrawList(NMHDR* pNMHDR, LRESULT* pResult)
 
 		if (DrawRtfText(nItem, rcText, pDC) == FALSE)
 		{
+			// DT_VCENTER does nothing for multi line text, so centre the whole
+			// lines ourselves - a single line should sit in the middle of the
+			// card instead of hugging the top edge.
+			CRect rcMeasure = rcText;
+			pDC->DrawText(csText, rcMeasure, DT_CALCRECT | DT_EXPANDTABS | DT_NOPREFIX);
+			int nTextHeight = rcMeasure.Height();
+			if (nTextHeight > 0 && nTextHeight < rcText.Height())
+			{
+				rcText.top += (rcText.Height() - nTextHeight) / 2;
+			}
+
 			auto highlightColor = CGetSetOptions::m_Theme.SearchTextHighlight();
 			//use unprintable characters so it doesn't find copied html to convert
 			if (m_searchText.GetLength() > 0 &&
@@ -1200,6 +1211,23 @@ BOOL CQListCtrl::DrawRtfText(int nItem, CRect& crRect, CDC* pDC)
 
 		CComBSTR bStr(betterRTF);
 		m_pFormatter->put_RTFText(bStr);
+
+		// A rich clip carries its own font size, which made the rows look
+		// inconsistent. Force the list font so every row has the same text size.
+		CFont* pListFont = GetFont();
+		if (pListFont != NULL)
+		{
+			m_pFormatter->SetUniformFont((HFONT)pListFont->GetSafeHandle());
+		}
+
+		// DT_VCENTER is ignored for multi line text, so centre the formatted
+		// text inside the card ourselves instead of hugging the top edge.
+		long nNaturalHeight = 0;
+		if (SUCCEEDED(m_pFormatter->get_NaturalHeight(crRect.Width(), &nNaturalHeight)) &&
+			nNaturalHeight > 0 && nNaturalHeight < crRect.Height())
+		{
+			crRect.top += (crRect.Height() - (int)nNaturalHeight) / 2;
+		}
 
 		m_pFormatter->Draw(pDC->m_hDC, crRect);
 
